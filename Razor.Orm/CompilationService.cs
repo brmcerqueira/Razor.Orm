@@ -17,11 +17,13 @@ namespace Razor.Orm
 {
     public static class CompilationService
     {
-        public static RazorEngine Engine { get; }
+        private static RazorEngine engine;
+        private static IList<RazorCodeDocument> list;
+        private static TemplateFactory _templateFactory;
 
         static CompilationService()
         {
-            Engine = RazorEngine.Create(builder =>
+            engine = RazorEngine.Create(builder =>
             {
                 SqlModelDirective.Register(builder);
                 FunctionsDirective.Register(builder);
@@ -29,55 +31,89 @@ namespace Razor.Orm
                 SectionDirective.Register(builder);
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
+            list = new List<RazorCodeDocument>();
         }
 
-        public static ISqlTemplate CreateCompilation(string compilationContent)
+        public static void Add(RazorCodeDocument razorCodeDocument)
         {
-            string assemblyName = Path.GetRandomFileName();
+            engine.Process(razorCodeDocument);
+            list.Add(razorCodeDocument);
+        }
 
-            SourceText sourceText = SourceText.From(compilationContent, Encoding.UTF8);
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceText).WithFilePath(assemblyName);
-
-            CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(Resolve(DependencyContext.Load(Assembly.GetCallingAssembly())))
-                .AddSyntaxTrees(syntaxTree);
-
-            using (var assemblyStream = new MemoryStream())
+        public static TemplateFactory TemplateFactory
+        {
+            get
             {
-                var result = compilation.Emit(assemblyStream);
-
-                if (!result.Success)
+                if (_templateFactory == null)
                 {
-                    List<Diagnostic> errorsDiagnostics = result.Diagnostics
-                            .Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error)
-                            .ToList();
+                    string assemblyName = Path.GetRandomFileName();
 
-                    StringBuilder builder = new StringBuilder();
-                    builder.AppendLine("Failed to compile generated Razor template:");
+                    var trees = new List<SyntaxTree>();
 
-                    var errorMessages = new List<string>();
-                    foreach (Diagnostic diagnostic in errorsDiagnostics)
+                    Action<string> parse = c => trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(c, Encoding.UTF8)).WithFilePath(assemblyName));
+
+                    var stringBuilder = new StringBuilder();
+
+                    stringBuilder.Append(@"namespace Razor.Orm.Templates { 
+                        public class DefaultTemplateFactory : global::Razor.Orm.TemplateFactory { 
+                        public DefaultTemplateFactory() { ");
+
+                    foreach (var item in list)
                     {
-                        FileLinePositionSpan lineSpan = diagnostic.Location.SourceTree.GetMappedLineSpan(diagnostic.Location.SourceSpan);
-                        string errorMessage = diagnostic.GetMessage();
-                        string formattedMessage = $"- ({lineSpan.StartLinePosition.Line}:{lineSpan.StartLinePosition.Character}) {errorMessage}";
-
-                        errorMessages.Add(formattedMessage);
-                        builder.AppendLine(formattedMessage);
+                        var source = item.Source;
+                        stringBuilder.Append($"Add<{source.FilePath}_GeneratedTemplate>(\"{source.FilePath}\");");
+                        parse(item.GetCSharpDocument().GeneratedCode);
                     }
 
-                    builder.AppendLine("\nSee CompilationErrors for detailed information");
+                    stringBuilder.Append(@" } } }");
 
-                    Console.WriteLine(builder.ToString());
-                    errorMessages.ForEach(s => Console.WriteLine(s));
+                    parse(stringBuilder.ToString());
+
+                    CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
+                        .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                        .AddReferences(Resolve(DependencyContext.Load(Assembly.GetCallingAssembly())))
+                        .AddSyntaxTrees(trees);
+
+
+                    using (var assemblyStream = new MemoryStream())
+                    {
+                        var result = compilation.Emit(assemblyStream);
+
+                        if (!result.Success)
+                        {
+                            List<Diagnostic> errorsDiagnostics = result.Diagnostics
+                                    .Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error)
+                                    .ToList();
+
+                            StringBuilder builder = new StringBuilder();
+                            builder.AppendLine("Failed to compile generated Razor template:");
+
+                            var errorMessages = new List<string>();
+                            foreach (Diagnostic diagnostic in errorsDiagnostics)
+                            {
+                                FileLinePositionSpan lineSpan = diagnostic.Location.SourceTree.GetMappedLineSpan(diagnostic.Location.SourceSpan);
+                                string errorMessage = diagnostic.GetMessage();
+                                string formattedMessage = $"- ({lineSpan.StartLinePosition.Line}:{lineSpan.StartLinePosition.Character}) {errorMessage}";
+
+                                errorMessages.Add(formattedMessage);
+                                builder.AppendLine(formattedMessage);
+                            }
+
+                            builder.AppendLine("\nSee CompilationErrors for detailed information");
+
+                            Console.WriteLine(builder.ToString());
+                            errorMessages.ForEach(s => Console.WriteLine(s));
+                        }
+
+                        assemblyStream.Seek(0, SeekOrigin.Begin);
+
+                        Assembly assembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream);
+
+                        _templateFactory = (TemplateFactory) Activator.CreateInstance(assembly.GetType("Razor.Orm.Templates.DefaultTemplateFactory", true, true));
+                    }         
                 }
 
-                assemblyStream.Seek(0, SeekOrigin.Begin);
-
-                Assembly assembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream);
-
-                return (ISqlTemplate)Activator.CreateInstance(assembly.GetType("Razor.Orm.CompiledTemplates.GeneratedTemplate", true, true));
+                return _templateFactory;
             }
         }
 

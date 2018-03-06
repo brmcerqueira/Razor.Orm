@@ -16,10 +16,10 @@ namespace Razor.Orm
             MethodDeclarationIntermediateNode method)
         {
             base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
+        
+            @namespace.Content = "Razor.Orm.Templates";
 
-            @namespace.Content = "Razor.Orm.CompiledTemplates";
-
-            @class.ClassName = "GeneratedTemplate";
+            @class.ClassName = $"{codeDocument.Source.FilePath}_GeneratedTemplate";
             @class.BaseType = "global::Razor.Orm.SqlTemplate<TModel>";
             @class.Modifiers.Clear();
             @class.Modifiers.Add("public");

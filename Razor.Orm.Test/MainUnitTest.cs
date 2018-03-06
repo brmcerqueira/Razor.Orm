@@ -25,11 +25,13 @@ and id in (@for(int i = 0; i < 10; i++)
 })", "teste");
 
             RazorCodeDocument codeDocument = RazorCodeDocument.Create(source);
-            CompilationService.Engine.Process(codeDocument);
+            CompilationService.Add(codeDocument);
 
             Logger.LogMessage("-> {0}", codeDocument.GetCSharpDocument().GeneratedCode);
 
-            var item = CompilationService.CreateCompilation(codeDocument.GetCSharpDocument().GeneratedCode);
+            var templateFactory = CompilationService.TemplateFactory;
+
+            var item = templateFactory["teste"];
 
             var result = item.Process(new TestDto { Name = "Bruno" });
 
