@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -10,12 +11,14 @@ namespace Razor.Orm
     public abstract class SqlTemplate<TModel> : ISqlTemplate
     {
         protected TModel Model { get; private set; }
+        private ILogger logger;
         private StringBuilder stringBuilder;
         private int parametersIndex;
         private IDictionary<string, object> parameters;
 
         public SqlTemplate()
         {
+            logger = CompilationService.LoggerFactory?.CreateLogger<SqlTemplate<TModel>>();
             stringBuilder = new StringBuilder();
             parametersIndex = 0;
             parameters = new Dictionary<string, object>();
@@ -46,18 +49,25 @@ namespace Razor.Orm
             }
 
             Execute();
-            return new SqlTemplateResult(stringBuilder.ToString(), parameters.ToArray());
+
+            var sql = stringBuilder.ToString();
+            var sqlParameters = parameters.ToArray();
+
+            if (logger != null)
+            {
+                logger.LogInformation(sql);
+                logger.LogInformation(string.Join('\n', sqlParameters.Select(e => $"{e.Key} -> {e.Value}")));
+            }
+
+            return new SqlTemplateResult(sql, sqlParameters);
         }
 
         protected virtual void Write(object value)
         {
-            if (value != null)
-            {
-                var key = string.Format("@p{0}", parametersIndex);
-                parametersIndex++;
-                stringBuilder.Append(key);
-                parameters.Add(key, value);
-            }
+            var key = string.Format("@p{0}", parametersIndex);
+            parametersIndex++;
+            stringBuilder.Append(key);
+            parameters.Add(key, value);
         }
 
         protected virtual void WriteLiteral(string value)

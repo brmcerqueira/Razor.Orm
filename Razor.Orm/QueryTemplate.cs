@@ -6,10 +6,14 @@ namespace Razor.Orm
 {
     public abstract class QueryTemplate<TModel, TResult> : SqlTemplate<TModel>
     {
-        public object As<T>(Expression<Func<TResult, T>> expression)
+        public AsBind As<T>(Expression<Func<TResult, T>> expression)
         {
-            WriteLiteral(CompilationService.GetAs(expression));
-            return null;
+            return CompilationService.GetAs(expression);
+        }
+
+        protected virtual void Write(AsBind value)
+        {
+            WriteLiteral(value.Content);
         }
     }
 

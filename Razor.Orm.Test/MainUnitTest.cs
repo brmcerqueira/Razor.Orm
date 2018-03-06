@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
@@ -20,28 +20,16 @@ namespace Razor.Orm.Test
     {
         [TestMethod]
         public void TestSqlTemplate()
-        {          
-            RazorSourceDocument source = RazorSourceDocument.Create(@"@using Razor.Orm
-            @using Razor.Orm.Test
-            @inherits QueryTemplate<TestDto, TestResultDto>    
-            select name @As(e => e.Name), fullname @As(e => e.Result.Result.Name) from users where name = @Model.Name
-            and id in (@for(int i = 0; i < 10; i++)
-            {
-                            @i<text>,</text>
-            })", "teste");
+        {
+            CompilationService.LoggerFactory = new LoggerFactory().AddConsole().AddDebug();
 
-            RazorCodeDocument codeDocument = RazorCodeDocument.Create(source);
-            CompilationService.Add(codeDocument);
-
-            Logger.LogMessage("-> {0}", codeDocument.GetCSharpDocument().GeneratedCode);
+            CompilationService.Start();
 
             var templateFactory = CompilationService.TemplateFactory;
 
-            var item = templateFactory["teste"];
+            var item = templateFactory["Razor.Orm.Test.Test.cshtml"];
 
             var result = item.Process(new TestDto { Name = "Bruno" });
-
-            Logger.LogMessage("-> {0}", result.Content);
         }
     }
 }

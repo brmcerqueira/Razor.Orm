@@ -14,14 +14,18 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Logging;
 
 namespace Razor.Orm
 {
     public static class CompilationService
     {
         private static RazorEngine engine;
-        private static IList<RazorCodeDocument> list;
+        private static string assemblyName;
+        private static List<SyntaxTree> list;
         private static Hashtable hashtable;
+        private static ILoggerFactory _loggerFactory;
+        private static ILogger logger;
         private static TemplateFactory _templateFactory;
 
         static CompilationService()
@@ -34,17 +38,64 @@ namespace Razor.Orm
                 SectionDirective.Register(builder);
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
-            list = new List<RazorCodeDocument>();
+            assemblyName = Path.GetRandomFileName();
+            list = new List<SyntaxTree>();
             hashtable = new Hashtable();
+            _loggerFactory = null;
         }
 
-        public static string GetAs<T, TResult>(Expression<Func<T, TResult>> expression)
+        public static ILoggerFactory LoggerFactory
         {
-            string result = null;
+            get
+            {
+                return _loggerFactory;
+            }
+            set
+            {
+                _loggerFactory = value;
+                logger = _loggerFactory.CreateLogger("CompilationService");
+            }
+        }
 
+        private static void Parse(string code)
+        {
+            list.Add(CSharpSyntaxTree.ParseText(SourceText.From(code, Encoding.UTF8)).WithFilePath(assemblyName));
+        }
+
+        public static void Start()
+        {
+            var assembly = Assembly.GetCallingAssembly();
+
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append(@"namespace Razor.Orm.Templates { 
+                        public class DefaultTemplateFactory : global::Razor.Orm.TemplateFactory { 
+                        public DefaultTemplateFactory() { ");
+
+            foreach (var item in assembly.GetManifestResourceNames())
+            {
+                var name = item.Replace('.', '_');
+                RazorCodeDocument razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
+                engine.Process(razorCodeDocument);
+                logger?.LogInformation(razorCodeDocument.GetCSharpDocument().GeneratedCode);
+                Parse(razorCodeDocument.GetCSharpDocument().GeneratedCode);
+                stringBuilder.Append($"Add<{name}_GeneratedTemplate>(\"{item}\");");
+            }
+
+            stringBuilder.Append(" } } }");
+
+            var defaultTemplateFactoryCode = stringBuilder.ToString();
+
+            logger?.LogInformation(defaultTemplateFactoryCode);
+
+            Parse(defaultTemplateFactoryCode);
+        }
+
+        public static AsBind GetAs<T, TResult>(Expression<Func<T, TResult>> expression)
+        {
             if (hashtable.ContainsKey(expression))
             {
-                result = (string) hashtable[expression];
+                return (AsBind) hashtable[expression];
             }
             else
             {
@@ -52,11 +103,10 @@ namespace Razor.Orm
                 Stringify(stringBuilder, expression.Body);
                 stringBuilder.Insert(0, "as '");
                 stringBuilder.Append("'");
-                result = stringBuilder.ToString();
+                var result = new AsBind(stringBuilder.ToString());
                 hashtable.Add(expression, result);
+                return result;
             }
-
-            return result;
         }
 
         private static void Stringify(StringBuilder stringBuilder, Expression expression)
@@ -73,46 +123,16 @@ namespace Razor.Orm
             }
         }
 
-        public static void Add(RazorCodeDocument razorCodeDocument)
-        {
-            engine.Process(razorCodeDocument);
-            list.Add(razorCodeDocument);
-        }
-
         public static TemplateFactory TemplateFactory
         {
             get
             {
                 if (_templateFactory == null)
                 {
-                    string assemblyName = Path.GetRandomFileName();
-
-                    var trees = new List<SyntaxTree>();
-
-                    Action<string> parse = c => trees.Add(CSharpSyntaxTree.ParseText(SourceText.From(c, Encoding.UTF8)).WithFilePath(assemblyName));
-
-                    var stringBuilder = new StringBuilder();
-
-                    stringBuilder.Append(@"namespace Razor.Orm.Templates { 
-                        public class DefaultTemplateFactory : global::Razor.Orm.TemplateFactory { 
-                        public DefaultTemplateFactory() { ");
-
-                    foreach (var item in list)
-                    {
-                        var source = item.Source;
-                        stringBuilder.Append($"Add<{source.FilePath}_GeneratedTemplate>(\"{source.FilePath}\");");
-                        parse(item.GetCSharpDocument().GeneratedCode);
-                    }
-
-                    stringBuilder.Append(@" } } }");
-
-                    parse(stringBuilder.ToString());
-
                     CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
                         .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                         .AddReferences(Resolve(DependencyContext.Load(Assembly.GetCallingAssembly())))
-                        .AddSyntaxTrees(trees);
-
+                        .AddSyntaxTrees(list);
 
                     using (var assemblyStream = new MemoryStream())
                     {
