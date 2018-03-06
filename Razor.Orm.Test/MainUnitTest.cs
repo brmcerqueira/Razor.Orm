@@ -17,7 +17,7 @@ namespace Razor.Orm.Test
         {          
             RazorSourceDocument source = RazorSourceDocument.Create(@"@using Razor.Orm
 @using Razor.Orm.Test
-@inherits SqlTemplate<TestDto>
+@model TestDto
 select * from users where name = @Model.Name
 and id in (@for(int i = 0; i < 10; i++)
 {
