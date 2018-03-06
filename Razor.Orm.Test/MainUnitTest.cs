@@ -4,13 +4,25 @@ using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace Razor.Orm.Test
 {
+    public class TestDto
+    {
+        public string Name { get; set; }
+    }
+
     [TestClass]
     public class MainUnitTest
     {
         [TestMethod]
         public void TestSqlTemplate()
         {          
-            RazorSourceDocument source = RazorSourceDocument.Create("select * from users where name @if(true) { <text>ewaew</text> } @Model.Name", "teste");
+            RazorSourceDocument source = RazorSourceDocument.Create(@"@using Razor.Orm
+@using Razor.Orm.Test
+@inherits SqlTemplate<TestDto>
+select * from users where name = @Model.Name
+and id in (@for(int i = 0; i < 10; i++)
+{
+                @i<text>,</text>
+})", "teste");
 
             RazorCodeDocument codeDocument = RazorCodeDocument.Create(source);
             CompilationService.Engine.Process(codeDocument);
@@ -19,7 +31,7 @@ namespace Razor.Orm.Test
 
             var item = CompilationService.CreateCompilation(codeDocument.GetCSharpDocument().GeneratedCode);
 
-            var result = item.Process(new { Name = "Bruno" });
+            var result = item.Process(new TestDto { Name = "Bruno" });
 
             Logger.LogMessage("-> {0}", result.Content);
         }

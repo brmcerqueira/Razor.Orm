@@ -7,6 +7,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +24,9 @@ namespace Razor.Orm
             Engine = RazorEngine.Create(builder =>
             {
                 SqlModelDirective.Register(builder);
+                FunctionsDirective.Register(builder);
+                InheritsDirective.Register(builder);
+                SectionDirective.Register(builder);
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
         }

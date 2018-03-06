@@ -52,6 +52,7 @@ namespace Razor.Orm
         protected virtual void Write(object value)
         {
             var key = string.Format("@p{0}", parametersIndex);
+            parametersIndex++;
             stringBuilder.Append(key);
             parameters.Add(key, value);
         }
