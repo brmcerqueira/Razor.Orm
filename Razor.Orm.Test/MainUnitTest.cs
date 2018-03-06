@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace Razor.Orm.Test
 {
@@ -15,17 +14,29 @@ namespace Razor.Orm.Test
         public TestResultDto Result { get; set; }
     }
 
+    public class TestDaoFactory : DaoFactory
+    {
+        public TestDaoFactory()
+            : base(new LoggerFactory().AddConsole().AddDebug())
+        {
+
+        }
+
+        protected override void Setup()
+        {
+   
+        }
+    }
+
     [TestClass]
     public class MainUnitTest
     {
         [TestMethod]
         public void TestSqlTemplate()
         {
-            CompilationService.LoggerFactory = new LoggerFactory().AddConsole().AddDebug();
+            var testDaoFactory = new TestDaoFactory();
 
-            CompilationService.Start();
-
-            var templateFactory = CompilationService.TemplateFactory;
+            var templateFactory = testDaoFactory.TemplateFactory;
 
             var item = templateFactory["Razor.Orm.Test.Test.cshtml"];
 

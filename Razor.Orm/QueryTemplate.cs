@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Razor.Orm
 {
@@ -8,7 +7,7 @@ namespace Razor.Orm
     {
         public AsBind As<T>(Expression<Func<TResult, T>> expression)
         {
-            return CompilationService.GetAs(expression);
+            return expression.GetAsBind();
         }
 
         protected virtual void Write(AsBind value)

@@ -18,7 +18,7 @@ namespace Razor.Orm
 
         public SqlTemplate()
         {
-            logger = CompilationService.LoggerFactory?.CreateLogger<SqlTemplate<TModel>>();
+            logger = this.CreateLogger();
             stringBuilder = new StringBuilder();
             parametersIndex = 0;
             parameters = new Dictionary<string, object>();
