@@ -6,27 +6,29 @@ namespace Razor.Orm
 {
     public class SqlModelDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
     {
-        private readonly bool designTime;
-
-        public SqlModelDirectivePass(bool designTime)
+        public SqlModelDirectivePass(DirectiveDescriptor directive, bool designTime)
         {
-            this.designTime = designTime;
+            Directive = directive;
+            DesignTime = designTime;
         }
 
         // Runs after the @inherits directive
         public override int Order => 5;
 
+        public DirectiveDescriptor Directive { get; }
+        public bool DesignTime { get; }
+
         protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
         {
-            var visitor = new SqlModelIntermediateNodeWalker();
+            var intermediateNodeWalker = new SqlIntermediateNodeWalker(Directive);
 
-            visitor.Visit(documentNode);
+            intermediateNodeWalker.Visit(documentNode);
 
             var modelType = "dynamic";
 
-            for (var i = visitor.ModelDirectives.Count - 1; i >= 0; i--)
+            for (var i = intermediateNodeWalker.Directives.Count - 1; i >= 0; i--)
             {
-                var directive = visitor.ModelDirectives[i];
+                var directive = intermediateNodeWalker.Directives[i];
 
                 var tokens = directive.Tokens.ToArray();
                 if (tokens.Length >= 1)
@@ -36,7 +38,7 @@ namespace Razor.Orm
                 }
             }
 
-            if (designTime)
+            if (DesignTime)
             {
                 // Alias the TModel token to a known type.
                 // This allows design time compilation to succeed for Razor files where the token isn't replaced.
@@ -46,10 +48,10 @@ namespace Razor.Orm
                     Content = $"TModel = {typeName}"
                 };
 
-                visitor.Namespace?.Children.Insert(0, usingNode);
+                intermediateNodeWalker.Namespace?.Children.Insert(0, usingNode);
             }
 
-            visitor.Class.BaseType = visitor.Class?.BaseType?.Replace("<TModel>", $"<{modelType}>");
+            intermediateNodeWalker.Class.BaseType = intermediateNodeWalker.Class?.BaseType?.Replace("<TModel>", $"<{modelType}>");
         }
     }
 }

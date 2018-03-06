@@ -9,6 +9,12 @@ namespace Razor.Orm.Test
         public string Name { get; set; }
     }
 
+    public class TestResultDto
+    {
+        public string Name { get; set; }
+        public TestResultDto Result { get; set; }
+    }
+
     [TestClass]
     public class MainUnitTest
     {
@@ -16,13 +22,13 @@ namespace Razor.Orm.Test
         public void TestSqlTemplate()
         {          
             RazorSourceDocument source = RazorSourceDocument.Create(@"@using Razor.Orm
-@using Razor.Orm.Test
-@model TestDto
-select * from users where name = @Model.Name
-and id in (@for(int i = 0; i < 10; i++)
-{
-                @i<text>,</text>
-})", "teste");
+            @using Razor.Orm.Test
+            @inherits QueryTemplate<TestDto, TestResultDto>    
+            select name @As(e => e.Name), fullname @As(e => e.Result.Result.Name) from users where name = @Model.Name
+            and id in (@for(int i = 0; i < 10; i++)
+            {
+                            @i<text>,</text>
+            })", "teste");
 
             RazorCodeDocument codeDocument = RazorCodeDocument.Create(source);
             CompilationService.Add(codeDocument);

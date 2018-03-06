@@ -51,10 +51,13 @@ namespace Razor.Orm
 
         protected virtual void Write(object value)
         {
-            var key = string.Format("@p{0}", parametersIndex);
-            parametersIndex++;
-            stringBuilder.Append(key);
-            parameters.Add(key, value);
+            if (value != null)
+            {
+                var key = string.Format("@p{0}", parametersIndex);
+                parametersIndex++;
+                stringBuilder.Append(key);
+                parameters.Add(key, value);
+            }
         }
 
         protected virtual void WriteLiteral(string value)

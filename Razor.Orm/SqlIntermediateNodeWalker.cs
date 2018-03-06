@@ -1,19 +1,22 @@
-﻿using Microsoft.AspNetCore.Razor.Language.Intermediate;
+﻿using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using System.Collections.Generic;
 
 namespace Razor.Orm
 {
-    public class SqlModelIntermediateNodeWalker : IntermediateNodeWalker
+    public class SqlIntermediateNodeWalker : IntermediateNodeWalker
     {
         public NamespaceDeclarationIntermediateNode Namespace { get; private set; }
 
         public ClassDeclarationIntermediateNode Class { get; private set; }
 
-        public IList<DirectiveIntermediateNode> ModelDirectives { get; }
+        public IList<DirectiveIntermediateNode> Directives { get; }
+        public DirectiveDescriptor DirectiveDescriptor { get; }
 
-        public SqlModelIntermediateNodeWalker()
+        public SqlIntermediateNodeWalker(DirectiveDescriptor directiveDescriptor)
         {
-            ModelDirectives = new List<DirectiveIntermediateNode>();
+            Directives = new List<DirectiveIntermediateNode>();
+            DirectiveDescriptor = directiveDescriptor;
         }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationIntermediateNode node)
@@ -38,9 +41,9 @@ namespace Razor.Orm
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
-            if (node.Directive == SqlModelDirective.directive)
+            if (node.Directive == DirectiveDescriptor)
             {
-                ModelDirectives.Add(node);
+                Directives.Add(node);
             }
         }
     }

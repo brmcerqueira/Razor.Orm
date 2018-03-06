@@ -2,22 +2,22 @@
 
 namespace Razor.Orm
 {
-    public static partial class SqlModelDirective
+    public static class SqlModelDirective
     {
-        public static readonly DirectiveDescriptor directive = DirectiveDescriptor.CreateDirective(
-            "model",
-            DirectiveKind.SingleLine,
-            builder =>
-            {
-                builder.AddTypeToken();
-                builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
-                builder.Description = "Model type bind";
-            });
-
         public static IRazorEngineBuilder Register(IRazorEngineBuilder builder)
         {
+            var directive = DirectiveDescriptor.CreateDirective(
+            "model",
+            DirectiveKind.SingleLine,
+            configure =>
+            {
+                configure.AddTypeToken();
+                configure.Usage = DirectiveUsage.FileScopedSinglyOccurring;
+                configure.Description = "Model type bind";
+            });
+
             builder.AddDirective(directive);
-            builder.Features.Add(new SqlModelDirectivePass(builder.DesignTime));
+            builder.Features.Add(new SqlModelDirectivePass(directive, builder.DesignTime));
             return builder;
         }
     }

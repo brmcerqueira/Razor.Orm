@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
@@ -19,6 +21,7 @@ namespace Razor.Orm
     {
         private static RazorEngine engine;
         private static IList<RazorCodeDocument> list;
+        private static Hashtable hashtable;
         private static TemplateFactory _templateFactory;
 
         static CompilationService()
@@ -32,6 +35,42 @@ namespace Razor.Orm
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
             list = new List<RazorCodeDocument>();
+            hashtable = new Hashtable();
+        }
+
+        public static string GetAs<T, TResult>(Expression<Func<T, TResult>> expression)
+        {
+            string result = null;
+
+            if (hashtable.ContainsKey(expression))
+            {
+                result = (string) hashtable[expression];
+            }
+            else
+            {
+                var stringBuilder = new StringBuilder();
+                Stringify(stringBuilder, expression.Body);
+                stringBuilder.Insert(0, "as '");
+                stringBuilder.Append("'");
+                result = stringBuilder.ToString();
+                hashtable.Add(expression, result);
+            }
+
+            return result;
+        }
+
+        private static void Stringify(StringBuilder stringBuilder, Expression expression)
+        {
+            if (expression is MemberExpression memberExpression)
+            {
+                stringBuilder.Insert(0, memberExpression.Member.Name);
+
+                if (memberExpression.Expression.NodeType == ExpressionType.MemberAccess)
+                {
+                    stringBuilder.Insert(0, "_");
+                    Stringify(stringBuilder, memberExpression.Expression);
+                }
+            }
         }
 
         public static void Add(RazorCodeDocument razorCodeDocument)
