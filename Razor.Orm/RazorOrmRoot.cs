@@ -18,10 +18,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Razor.Orm
 {
-    internal static class RazorOrmExtensions
+    internal static class RazorOrmRoot
     {
         private static Hashtable hashtable = new Hashtable();
         internal static ILoggerFactory LoggerFactory { get; set; }
+
+        internal static TemplateFactory TemplateFactory { get; set; }
 
         internal static ILogger<T> CreateLogger<T>(this T item)
         {
@@ -43,6 +45,18 @@ namespace Razor.Orm
                 var result = new AsBind(stringBuilder.ToString());
                 hashtable.Add(expression, result);
                 return result;
+            }
+        }
+
+        internal static string FullNameForCode(this Type type)
+        {
+            if (type.IsGenericType)
+            {
+                return $"{type.FullName.Remove(type.FullName.IndexOf('`'))}<{ string.Join(',', type.GenericTypeArguments.Select(p => p.FullNameForCode()))}>";
+            }
+            else
+            {
+                return type.FullName;
             }
         }
 

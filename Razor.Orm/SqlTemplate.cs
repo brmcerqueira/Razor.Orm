@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -14,14 +15,14 @@ namespace Razor.Orm
         private ILogger logger;
         private StringBuilder stringBuilder;
         private int parametersIndex;
-        private IDictionary<string, object> parameters;
+        private IList<SqlParameter> parameters;
 
         public SqlTemplate()
         {
             logger = this.CreateLogger();
             stringBuilder = new StringBuilder();
             parametersIndex = 0;
-            parameters = new Dictionary<string, object>();
+            parameters = new List<SqlParameter>();
         }
 
         public SqlTemplateResult Process(object model)
@@ -56,7 +57,7 @@ namespace Razor.Orm
             if (logger != null)
             {
                 logger.LogInformation(sql);
-                logger.LogInformation(string.Join('\n', sqlParameters.Select(e => $"{e.Key} -> {e.Value}")));
+                logger.LogInformation(string.Join('\n', sqlParameters.Select(e => $"{e.ParameterName} -> {e.Value}")));
             }
 
             return new SqlTemplateResult(sql, sqlParameters);
@@ -67,7 +68,7 @@ namespace Razor.Orm
             var key = string.Format("@p{0}", parametersIndex);
             parametersIndex++;
             stringBuilder.Append(key);
-            parameters.Add(key, value);
+            parameters.Add(new SqlParameter(key, value));
         }
 
         protected virtual void WriteLiteral(string value)

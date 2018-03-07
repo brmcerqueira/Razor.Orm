@@ -1,27 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
 
 namespace Razor.Orm
 {
     public abstract class TemplateFactory
     {
-        private IDictionary<string, ISqlTemplate> dictionary;
+        private Hashtable hashtable;
 
         public TemplateFactory()
         {
-            dictionary = new Dictionary<string, ISqlTemplate>();
+            hashtable = new Hashtable();
         }
 
         public ISqlTemplate this[string index]
         {
             get
             {
-                return dictionary[index];
+                return (ISqlTemplate) hashtable[index];
             }
         }
 
-        protected void Add<T>(string index) where T : ISqlTemplate, new()
+        protected void Add(string index, ISqlTemplate sqlTemplate)
         {
-            dictionary.Add(index, new T());
+            hashtable.Add(index, sqlTemplate);
         }
     }
 }

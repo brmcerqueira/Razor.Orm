@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,10 +19,12 @@ namespace Razor.Orm
     public abstract class DaoFactory
     {
         private ILogger logger;
+        private string assemblyName;
+        private List<SyntaxTree> syntaxTrees;
 
         public DaoFactory(ILoggerFactory loggerFactory = null)
         {
-            RazorOrmExtensions.LoggerFactory = loggerFactory;
+            RazorOrmRoot.LoggerFactory = loggerFactory;
             logger = this.CreateLogger();
 
             var engine = RazorEngine.Create(builder =>
@@ -35,30 +36,29 @@ namespace Razor.Orm
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
 
-            var assemblyName = Path.GetRandomFileName();
+            assemblyName = Path.GetRandomFileName();
 
-            var syntaxTrees = new List<SyntaxTree>();
+            syntaxTrees = new List<SyntaxTree>();
 
             Setup();
 
             var assembly = Assembly.GetCallingAssembly();
 
-            Action<string> parse = c => syntaxTrees.Add(CSharpSyntaxTree.ParseText(SourceText.From(c, Encoding.UTF8)).WithFilePath(assemblyName));
-
             var stringBuilder = new StringBuilder();
 
             stringBuilder.Append(@"namespace Razor.Orm.Templates { 
-                        public class DefaultTemplateFactory : global::Razor.Orm.TemplateFactory { 
-                        public DefaultTemplateFactory() { ");
+                        public class GeneratedTemplateFactory : Razor.Orm.TemplateFactory { 
+                        public GeneratedTemplateFactory() { ");
 
             foreach (var item in assembly.GetManifestResourceNames())
             {
                 var name = item.Replace('.', '_');
                 RazorCodeDocument razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
                 engine.Process(razorCodeDocument);
-                logger?.LogInformation(razorCodeDocument.GetCSharpDocument().GeneratedCode);
-                parse(razorCodeDocument.GetCSharpDocument().GeneratedCode);
-                stringBuilder.Append($"Add<{name}_GeneratedTemplate>(\"{item}\");");
+                var generatedCode = razorCodeDocument.GetCSharpDocument().GeneratedCode;
+                logger?.LogInformation(generatedCode);
+                Parse(generatedCode);
+                stringBuilder.Append($"Add(\"{item}\", new {name}_GeneratedTemplate());");
             }
 
             stringBuilder.Append(" } } }");
@@ -67,7 +67,7 @@ namespace Razor.Orm
 
             logger?.LogInformation(defaultTemplateFactoryCode);
 
-            parse(defaultTemplateFactoryCode);
+            Parse(defaultTemplateFactoryCode);
 
             CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -111,13 +111,98 @@ namespace Razor.Orm
 
                 var generatedAssembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream);
 
-                TemplateFactory = (TemplateFactory)Activator.CreateInstance(generatedAssembly.GetType("Razor.Orm.Templates.DefaultTemplateFactory", true, true));
+                RazorOrmRoot.TemplateFactory = (TemplateFactory) Activator.CreateInstance(generatedAssembly.GetType("Razor.Orm.Templates.GeneratedTemplateFactory", true, true));
             }
+        }
+
+        private void Parse(string code)
+        {
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText(SourceText.From(code, Encoding.UTF8)).WithFilePath(assemblyName));
         }
 
         protected abstract void Setup();
 
-        public TemplateFactory TemplateFactory { get; private set; }
+        protected void Define<T>() 
+        {
+            var type = typeof(T);
+      
+            if (!type.IsInterface)
+            {
+                throw new Exception("O tipo precisa ser uma interface.");
+            }
+
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append($@"namespace Razor.Orm.Generated {{ 
+                public class {type.Name}_GenerateDao : Razor.Orm.Dao, {type.FullNameForCode()} {{ 
+                        public {type.Name}_GenerateDao() {{ }} ");
+
+            foreach (var method in type.GetMethods())
+            {
+                var parameters = method.GetParameters();
+
+                if (parameters.Length > 1)
+                {
+                    throw new Exception($"O metodo {method.Name} não pode ter mais de 1 parametro.");
+                }
+
+                stringBuilder.Append($"public override ");
+
+                var returnType = method.ReturnType;
+
+                MethodReturnType? methodReturnType = null;
+
+                if (returnType == typeof(void))
+                {
+                    methodReturnType = MethodReturnType.Void;
+                    stringBuilder.Append("void");
+                }
+                else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    methodReturnType = MethodReturnType.Enumerable;
+                    stringBuilder.Append(method.ReturnType.FullNameForCode());
+                }
+                else if (returnType.IsPublic && !returnType.IsAbstract && !returnType.IsInterface && returnType.GetConstructor(Type.EmptyTypes) != null)
+                {
+                    methodReturnType = MethodReturnType.Object;
+                    stringBuilder.Append(method.ReturnType.FullNameForCode());
+                }
+                else
+                {
+                    throw new Exception($"O tipo {returnType.FullNameForCode()} não pode ser usado como retorno.");
+                }
+
+                stringBuilder.Append($" {method.Name}(");
+
+                ParameterInfo parameter = parameters.Length == 1 ? parameters[0] : null;
+
+                if (parameter != null)
+                {                   
+                    stringBuilder.Append($"{parameter.ParameterType.FullNameForCode()} {parameter.Name}");
+                }
+
+                stringBuilder.Append(") { ");
+
+                switch (methodReturnType.Value)
+                {
+                    case MethodReturnType.Void:
+                        break;
+                    case MethodReturnType.Enumerable:
+                        stringBuilder.Append($"return ExecuteReader(\"{type.Namespace}.{method.Name}.cshtml\", ");
+                        stringBuilder.Append(parameter != null ? $"{parameter.Name}, " : "null, ");
+                        stringBuilder.Append("d => {});");
+                        break;
+                    case MethodReturnType.Object:
+                        break;
+                }
+
+                stringBuilder.Append(" } ");
+            }
+
+            stringBuilder.Append(" } } }");
+
+            logger?.LogInformation(stringBuilder.ToString());
+        }     
 
         private IReadOnlyList<MetadataReference> Resolve(DependencyContext dependencyContext)
         {
@@ -126,8 +211,7 @@ namespace Razor.Orm
 
             if (!references.Any())
             {
-                throw new Exception(@"Can't load metadata reference from the entry assembly. 
-                    Make sure PreserveCompilationContext is set to true in *.csproj file");
+                throw new Exception("Can't load metadata reference from the entry assembly. Make sure PreserveCompilationContext is set to true in *.csproj file");
             }
 
             var metadataRerefences = new List<MetadataReference>();

@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System.Data.SqlClient;
 
 namespace Razor.Orm
 {
     public struct SqlTemplateResult
     {
         public string Content { get; }
-        public KeyValuePair<string, object>[] Parameters { get; }
+        public SqlParameter[] Parameters { get; }
 
-        public SqlTemplateResult(string content, KeyValuePair<string, object>[] parameters)
+        public SqlTemplateResult(string content, SqlParameter[] parameters)
         {
             Content = content;
             Parameters = parameters;
