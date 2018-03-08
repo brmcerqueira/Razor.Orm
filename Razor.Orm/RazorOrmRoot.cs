@@ -18,23 +18,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Razor.Orm
 {
-    internal static class RazorOrmRoot
+    public static class RazorOrmRoot
     {
         private static Hashtable hashtable = new Hashtable();
         internal static ILoggerFactory LoggerFactory { get; set; }
 
-        internal static TemplateFactory TemplateFactory { get; set; }
+        public static TemplateFactory TemplateFactory { get; set; }
 
         internal static ILogger<T> CreateLogger<T>(this T item)
         {
             return LoggerFactory?.CreateLogger<T>();
         }
 
-        internal static AsBind GetAsBind<T, TResult>(this Expression<Func<T, TResult>> expression)
+        internal static string GetAsBind<T, TResult>(this Expression<Func<T, TResult>> expression)
         {
             if (hashtable.ContainsKey(expression))
             {
-                return (AsBind) hashtable[expression];
+                return (string) hashtable[expression];
             }
             else
             {
@@ -42,7 +42,7 @@ namespace Razor.Orm
                 Stringify(stringBuilder, expression.Body);
                 stringBuilder.Insert(0, "as '");
                 stringBuilder.Append("'");
-                var result = new AsBind(stringBuilder.ToString());
+                var result = stringBuilder.ToString();
                 hashtable.Add(expression, result);
                 return result;
             }

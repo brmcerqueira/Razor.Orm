@@ -5,14 +5,9 @@ namespace Razor.Orm
 {
     public abstract class QueryTemplate<TModel, TResult> : SqlTemplate<TModel>
     {
-        public AsBind As<T>(Expression<Func<TResult, T>> expression)
+        public EscapeString As<T>(Expression<Func<TResult, T>> expression)
         {
-            return expression.GetAsBind();
-        }
-
-        protected virtual void Write(AsBind value)
-        {
-            WriteLiteral(value.Content);
+            return new EscapeString(expression.GetAsBind());
         }
     }
 

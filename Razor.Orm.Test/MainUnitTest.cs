@@ -41,12 +41,10 @@ namespace Razor.Orm.Test
         public void TestSqlTemplate()
         {
             var testDaoFactory = new TestDaoFactory();
-            /*
-            var templateFactory = testDaoFactory.TemplateFactory;
 
-            var item = templateFactory["Razor.Orm.Test.Test.cshtml"];
+            var item = RazorOrmRoot.TemplateFactory["Razor.Orm.Test.Test.cshtml"];
 
-            var result = item.Process(new TestDto { Name = "Bruno" });*/
+            var result = item.Process(new TestDto { Name = null });
         }
     }
 }

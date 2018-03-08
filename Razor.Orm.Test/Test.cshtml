@@ -1,8 +1,11 @@
 ﻿@using Razor.Orm
 @using Razor.Orm.Test
 @inherits QueryTemplate<TestDto, TestResultDto>
-select name @As(e => e.Name), fullname @As(e => e.Result.Result.Name) from users where name = @Model.Name
-and id in (@for (int i = 0; i < 10; i++)
+select name @As(e => e.Name), fullname @As(e => e.Result.Result.Name) from users
+@using (Where())
 {
-    @i<text>,</text>
-})
+    if (Model.Name != null)
+    {
+        <text>name = @Par(Model.Name) and id @In(1, 2, 3)</text>
+    }
+}
