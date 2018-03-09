@@ -14,7 +14,7 @@ namespace Razor.Orm
 
         private SqlConnection SqlConnection { get; }
 
-        protected IEnumerable<T> ExecuteReader<T>(string index, object model, Func<SqlDataReader, T> transform)
+        protected IEnumerable<T> ExecuteReader<T>(string index, object model, string[] map, Func<DataReader, T> transform)
         {
             using (var sqlCommand = SqlConnection.CreateCommand())
             {
@@ -28,9 +28,10 @@ namespace Razor.Orm
 
                 using (var sqlDataReader = sqlCommand.ExecuteReader(CommandBehavior.Default))
                 {
+                    var dataReader = new DataReader(sqlDataReader, map);
                     while (sqlDataReader.Read())
                     {
-                        yield return transform(sqlDataReader);
+                        yield return transform(dataReader);
                     }
                 }
             }  
