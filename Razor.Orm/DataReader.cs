@@ -8,7 +8,7 @@ namespace Razor.Orm
     {
         private Func<object>[] functions;
 
-        internal DataReader(SqlDataReader sqlDataReader, Tuple<string, Type>[] map)
+        internal DataReader(SqlDataReader sqlDataReader, Tuple<string, Func<SqlDataReader, int, object>>[] map)
         {
             functions = new Func<object>[map.Length];
 
@@ -20,10 +20,9 @@ namespace Razor.Orm
                 for (int i = 0; i < map.Length; i++)
                 {
                     var tuple = map[i];
-                    if (tuple.Item1 == name)
+                    if (tuple.Item1 == name && tuple.Item2 != null)
                     {
-                        var function = RazorOrmRoot.GetTransform(tuple.Item2);
-                        functions[i] = () => function(sqlDataReader, ordinal);
+                        functions[i] = () => tuple.Item2(sqlDataReader, ordinal);
                         break;
                     }
                 }

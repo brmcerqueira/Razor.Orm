@@ -143,6 +143,8 @@ namespace Razor.Orm
                 public class {type.Name}_GenerateDao : Razor.Orm.Dao, {type.FullNameForCode()} {{ 
                         public {type.Name}_GenerateDao() {{ }} ");
 
+            var methodIndex = 0;
+
             foreach (var method in type.GetMethods())
             {
                 var parameters = method.GetParameters();
@@ -166,12 +168,12 @@ namespace Razor.Orm
                 else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 {
                     methodReturnType = MethodReturnType.Enumerable;
-                    stringBuilder.Append(method.ReturnType.FullNameForCode());
+                    stringBuilder.Append(returnType.FullNameForCode());
                 }
                 else if (returnType.IsPublic && !returnType.IsAbstract && !returnType.IsInterface && returnType.GetConstructor(Type.EmptyTypes) != null)
                 {
                     methodReturnType = MethodReturnType.Object;
-                    stringBuilder.Append(method.ReturnType.FullNameForCode());
+                    stringBuilder.Append(returnType.FullNameForCode());
                 }
                 else
                 {
@@ -194,9 +196,10 @@ namespace Razor.Orm
                     case MethodReturnType.Void:
                         break;
                     case MethodReturnType.Enumerable:
-                        stringBuilder.Append($"return ExecuteReader(\"{type.Namespace}.{method.Name}.cshtml\", ");
+                        stringBuilder.Append($"return ExecuteReader(\"{type.Namespace}.{method.Name}.cshtml\", {methodIndex}, ");
                         stringBuilder.Append(parameter != null ? $"{parameter.Name}, " : "null, ");
                         stringBuilder.Append("d => {});");
+                        methodIndex++;
                         break;
                     case MethodReturnType.Object:
                         break;

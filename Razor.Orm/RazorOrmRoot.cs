@@ -86,9 +86,9 @@ namespace Razor.Orm
             }
         }
 
-        internal static Func<SqlDataReader, int, object> GetTransform(Type type)
+        internal static Func<SqlDataReader, int, T> GetTransform<T>()
         {
-            return (Func<SqlDataReader, int, object>) transformers[type];
+            return (Func<SqlDataReader, int, T>) transformers[typeof(T)];
         }
 
         internal static void RegisterTransform<T>(Func<SqlDataReader, int, T> function)
