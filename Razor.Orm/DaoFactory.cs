@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -121,6 +122,11 @@ namespace Razor.Orm
         }
 
         protected abstract void Setup();
+
+        protected void RegisterTransform<T>(Func<SqlDataReader, int, T> function)
+        {
+            RazorOrmRoot.RegisterTransform(function);
+        }
 
         protected void Define<T>() 
         {

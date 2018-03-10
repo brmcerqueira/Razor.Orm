@@ -14,7 +14,7 @@ namespace Razor.Orm
 
         private SqlConnection SqlConnection { get; }
 
-        protected IEnumerable<T> ExecuteReader<T>(string index, object model, string[] map, Func<DataReader, T> transform)
+        protected IEnumerable<T> ExecuteReader<T>(string index, object model, Tuple<string, Type>[] map, Func<DataReader, T> transform)
         {
             using (var sqlCommand = SqlConnection.CreateCommand())
             {

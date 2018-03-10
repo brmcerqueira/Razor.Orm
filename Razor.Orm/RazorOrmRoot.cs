@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -20,10 +21,35 @@ namespace Razor.Orm
 {
     public static class RazorOrmRoot
     {
-        private static Hashtable hashtable = new Hashtable();
+        private static Hashtable asBinds = new Hashtable();
+        private static Hashtable transformers = new Hashtable();
         internal static ILoggerFactory LoggerFactory { get; set; }
 
         public static TemplateFactory TemplateFactory { get; set; }
+
+        static RazorOrmRoot()
+        {
+            RegisterTransform((s, i) => s.IsDBNull(i) ? null : s.GetString(i));
+            RegisterTransform((s, i) => s.GetInt64(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (long?) null : s.GetInt64(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? null : s.GetSqlBytes(i).Buffer);
+            RegisterTransform((s, i) => s.GetByte(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (byte?)null : s.GetByte(i));
+            RegisterTransform((s, i) => s.GetDateTime(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (DateTime?)null : s.GetDateTime(i));
+            RegisterTransform((s, i) => s.GetDecimal(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (decimal?)null : s.GetDecimal(i));
+            RegisterTransform((s, i) => s.GetFloat(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (float?)null : s.GetFloat(i));
+            RegisterTransform((s, i) => s.GetInt32(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (int?)null : s.GetInt32(i));
+            RegisterTransform((s, i) => s.GetInt16(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (short?)null : s.GetInt16(i));
+            RegisterTransform((s, i) => s.GetTimeSpan(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (TimeSpan?)null : s.GetTimeSpan(i));
+            RegisterTransform((s, i) => s.GetGuid(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (Guid?)null : s.GetGuid(i));
+        }
 
         internal static ILogger<T> CreateLogger<T>(this T item)
         {
@@ -32,18 +58,18 @@ namespace Razor.Orm
 
         internal static string GetAsBind<T, TResult>(this Expression<Func<T, TResult>> expression)
         {
-            if (hashtable.ContainsKey(expression))
+            if (asBinds.ContainsKey(expression))
             {
-                return (string) hashtable[expression];
+                return (string) asBinds[expression];
             }
             else
             {
                 var stringBuilder = new StringBuilder();
                 Stringify(stringBuilder, expression.Body);
-                stringBuilder.Insert(0, "as '");
+                stringBuilder.Append("as '");
                 stringBuilder.Append("'");
                 var result = stringBuilder.ToString();
-                hashtable.Add(expression, result);
+                asBinds.Add(expression, result);
                 return result;
             }
         }
@@ -58,6 +84,16 @@ namespace Razor.Orm
             {
                 return type.FullName;
             }
+        }
+
+        internal static Func<SqlDataReader, int, object> GetTransform(Type type)
+        {
+            return (Func<SqlDataReader, int, object>) transformers[type];
+        }
+
+        internal static void RegisterTransform<T>(Func<SqlDataReader, int, T> function)
+        {
+            transformers.Add(typeof(T), function);
         }
 
         private static void Stringify(StringBuilder stringBuilder, Expression expression)
