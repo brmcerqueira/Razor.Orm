@@ -22,7 +22,7 @@ namespace Razor.Orm
             @class.ClassName = $"{codeDocument.Source.FilePath}_GeneratedTemplate";
             @class.BaseType = "global::Razor.Orm.SqlTemplate<TModel>";
             @class.Modifiers.Clear();
-            @class.Modifiers.Add("public");
+            @class.Modifiers.Add("internal");
 
             method.MethodName = "Execute";
             method.Modifiers.Clear();

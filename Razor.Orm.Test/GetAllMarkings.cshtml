@@ -1,0 +1,11 @@
+﻿@using Razor.Orm
+@using Razor.Orm.Test
+@inherits QueryTemplate<TestDto, MarkingDto>
+SELECT * FROM marking
+@using (Where())
+{
+    if (Model.Ids != null && Model.Ids.Length > 0)
+    {
+        <text>id @In(Model.Ids)</text>
+    }
+}

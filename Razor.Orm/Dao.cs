@@ -7,15 +7,17 @@ namespace Razor.Orm
 {
     public abstract class Dao
     {
-        public Dao(SqlConnection sqlConnection)
+        public Dao(SqlConnection sqlConnection, TemplateFactory templateFactory)
         {
             SqlConnection = sqlConnection;
+            TemplateFactory = templateFactory;
             Map = GetMap();
         }
 
         protected abstract Tuple<string, Func<SqlDataReader, int, object>>[][] GetMap();
 
         private SqlConnection SqlConnection { get; }
+        private TemplateFactory TemplateFactory { get; }
         private Tuple<string, Func<SqlDataReader, int, object>>[][] Map { get; }
 
         protected Func<SqlDataReader, int, object> GetTransform(Type type)
@@ -27,7 +29,7 @@ namespace Razor.Orm
         {
             using (var sqlCommand = SqlConnection.CreateCommand())
             {
-                var sqlTemplate = RazorOrmRoot.TemplateFactory[template];
+                var sqlTemplate = TemplateFactory[template];
 
                 var sqlTemplateResult = sqlTemplate.Process(model);
 

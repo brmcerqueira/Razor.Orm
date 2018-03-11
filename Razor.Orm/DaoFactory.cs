@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
@@ -21,7 +23,9 @@ namespace Razor.Orm
     {
         private ILogger logger;
         private string assemblyName;
+        private List<Type> types;
         private List<SyntaxTree> syntaxTrees;
+        private Hashtable hashtable;
 
         public DaoFactory(ILoggerFactory loggerFactory = null)
         {
@@ -38,8 +42,9 @@ namespace Razor.Orm
             });
 
             assemblyName = Path.GetRandomFileName();
-
+            types = new List<Type>();
             syntaxTrees = new List<SyntaxTree>();
+            hashtable = new Hashtable();
 
             Setup();
 
@@ -48,8 +53,8 @@ namespace Razor.Orm
             var stringBuilder = new StringBuilder();
 
             stringBuilder.Append(@"namespace Razor.Orm.Templates { 
-                        public class GeneratedTemplateFactory : global::Razor.Orm.TemplateFactory { 
-                        public GeneratedTemplateFactory() { ");
+                        internal class GeneratedTemplateFactory : global::Razor.Orm.TemplateFactory { 
+                        private GeneratedTemplateFactory() { ");
 
             foreach (var item in assembly.GetManifestResourceNames())
             {
@@ -57,16 +62,30 @@ namespace Razor.Orm
                 RazorCodeDocument razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
                 engine.Process(razorCodeDocument);
                 var generatedCode = razorCodeDocument.GetCSharpDocument().GeneratedCode;
-                logger?.LogInformation(generatedCode);
                 Parse(generatedCode);
                 stringBuilder.Append($"Add(\"{item}\", new {name}_GeneratedTemplate());");
             }
 
-            stringBuilder.Append(" } } }");
+            stringBuilder.Append(@" } 
+
+            private static GeneratedTemplateFactory _instance = null;
+
+            internal static GeneratedTemplateFactory Instance 
+            { 
+                get
+                {
+                    if (_instance == null) 
+                    {                       
+                        _instance = new GeneratedTemplateFactory();
+                    }
+
+                    return _instance;
+                }
+            }
+
+            } }");
 
             var defaultTemplateFactoryCode = stringBuilder.ToString();
-
-            logger?.LogInformation(defaultTemplateFactoryCode);
 
             Parse(defaultTemplateFactoryCode);
 
@@ -112,7 +131,14 @@ namespace Razor.Orm
 
                 var generatedAssembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream);
 
-                RazorOrmRoot.TemplateFactory = (TemplateFactory) Activator.CreateInstance(generatedAssembly.GetType("Razor.Orm.Templates.GeneratedTemplateFactory", true, true));
+                var sqlConnectionType = typeof(SqlConnection);
+
+                foreach (var item in generatedAssembly.GetExportedTypes())
+                {
+                    var sqlConnectionParameter = Expression.Parameter(sqlConnectionType, "sqlConnection");
+                    hashtable.Add(types.First(e => e.IsAssignableFrom(item)), Expression.Lambda<Func<SqlConnection, object>>(Expression.New(item.GetConstructor(
+                    new Type[] { sqlConnectionType }), new Expression[] { sqlConnectionParameter }), new ParameterExpression[] { sqlConnectionParameter }).Compile());
+                }
             }
         }
 
@@ -128,14 +154,16 @@ namespace Razor.Orm
             RazorOrmRoot.RegisterTransform(function);
         }
 
-        protected void Define<T>() 
+        protected void Define<T>()
         {
             var type = typeof(T);
-      
+
             if (!type.IsInterface)
             {
                 throw new Exception("O tipo precisa ser uma interface.");
             }
+
+            types.Add(type);
 
             var stringBuilder = new StringBuilder();
             var stringBuilderMap = new StringBuilder();
@@ -143,7 +171,7 @@ namespace Razor.Orm
             stringBuilder.Append($@"namespace Razor.Orm.Generated {{ 
                 public class {type.Name}_GenerateDao : global::Razor.Orm.Dao, {type.FullNameForCode()} {{ 
                 public {type.Name}_GenerateDao(global::System.Data.SqlClient.SqlConnection sqlConnection) : 
-                base(sqlConnection) {{ }}");
+                base(sqlConnection, global::Razor.Orm.Templates.GeneratedTemplateFactory.Instance) {{ }}");
 
             stringBuilderMap.Append($@"protected override global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] GetMap() {{ 
                 return new global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] {{ ");
@@ -181,7 +209,7 @@ namespace Razor.Orm
                 ParameterInfo parameter = parameters.Length == 1 ? parameters[0] : null;
 
                 if (parameter != null)
-                {                   
+                {
                     stringBuilder.Append($"{parameter.ParameterType.FullNameForCode()} {parameter.Name}");
                 }
 
@@ -219,7 +247,9 @@ namespace Razor.Orm
 
             stringBuilder.Append(" }; } } }");
 
-            logger?.LogInformation(stringBuilder.ToString());
+            var code = stringBuilder.ToString();
+
+            Parse(code);
         }
 
         private void GenerateReturnTypeCallback(StringBuilder stringBuilderCallback, StringBuilder stringBuilderTuple, string path, Type type, ref int columnIndex)
@@ -262,6 +292,11 @@ namespace Razor.Orm
                     stringBuilderCallback.Append(" }");
                     break;
             }
+        }
+
+        public T CreateDao<T>(SqlConnection sqlConnection)
+        {
+            return (T) (hashtable[typeof(T)] as Func<SqlConnection, object>)(sqlConnection);
         }
 
         private IReadOnlyList<MetadataReference> Resolve(DependencyContext dependencyContext)

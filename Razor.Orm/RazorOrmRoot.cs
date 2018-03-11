@@ -25,8 +25,6 @@ namespace Razor.Orm
         private static Hashtable transformers = new Hashtable();
         internal static ILoggerFactory LoggerFactory { get; set; }
 
-        public static TemplateFactory TemplateFactory { get; set; }
-
         static RazorOrmRoot()
         {
             RegisterTransform((s, i) => s.IsDBNull(i) ? null : s.GetString(i));
@@ -80,7 +78,7 @@ namespace Razor.Orm
             {
                 return TypeClassifier.Void;
             }
-            else if (type.IsPrimitive || type == typeof(string))
+            else if (type.IsPrimitive || type == typeof(string) || type == typeof(DateTime))
             {
                 return TypeClassifier.Primitive;
             }
@@ -117,7 +115,8 @@ namespace Razor.Orm
 
         internal static void RegisterTransform<T>(Func<SqlDataReader, int, T> function)
         {
-            transformers.Add(typeof(T), function);
+            Func<SqlDataReader, int, object> castFunction = (s, i) => function(s, i);
+            transformers.Add(typeof(T), castFunction);
         }
 
         private static void Stringify(StringBuilder stringBuilder, Expression expression)

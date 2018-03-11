@@ -27,23 +27,26 @@ namespace Razor.Orm
             parametersIndex = 0;
             parameters = new List<SqlParameter>();
 
-            var modelType = model.GetType();
-            var typeInfo = modelType.GetTypeInfo();
-
-            if (typeInfo.GetCustomAttributes(typeof(CompilerGeneratedAttribute), false).Any() && modelType.FullName.Contains("AnonymousType"))
+            if (model != null)
             {
-                IDictionary<string, object> expando = new ExpandoObject();
-                foreach (var propertyDescriptor in typeInfo.GetProperties())
+                var modelType = model.GetType();
+                var typeInfo = modelType.GetTypeInfo();
+
+                if (typeInfo.GetCustomAttributes(typeof(CompilerGeneratedAttribute), false).Any() && modelType.FullName.Contains("AnonymousType"))
                 {
-                    var obj = propertyDescriptor.GetValue(model);
-                    expando.Add(propertyDescriptor.Name, obj);
-                }
+                    IDictionary<string, object> expando = new ExpandoObject();
+                    foreach (var propertyDescriptor in typeInfo.GetProperties())
+                    {
+                        var obj = propertyDescriptor.GetValue(model);
+                        expando.Add(propertyDescriptor.Name, obj);
+                    }
 
-                Model = (TModel) expando;
-            }
-            else
-            {
-                Model = (TModel) model;
+                    Model = (TModel)expando;
+                }
+                else
+                {
+                    Model = (TModel)model;
+                } 
             }
 
             Execute();
@@ -95,17 +98,27 @@ namespace Razor.Orm
             return new EscapeString(key);
         }
 
-        public EscapeString In(params string[] values)
+        public EscapeString InParams(params string[] values)
         {
-            return PrivateIn(values.Select(e => ParseString(e)));
+            return In(values);
         }
 
-        public EscapeString In(params object[] values)
+        public EscapeString InParams<T>(params T[] values)
         {
             return PrivateIn(values);
         }
 
-        private EscapeString PrivateIn(IEnumerable<object> values)
+        public EscapeString In(string[] values)
+        {
+            return PrivateIn(values.Select(e => ParseString(e)));
+        }
+
+        public EscapeString In<T>(T[] values)
+        {
+            return PrivateIn(values);
+        }
+
+        private EscapeString PrivateIn<T>(IEnumerable<T> values)
         {
             return new EscapeString($"in ({string.Join(',', values)})");
         }
