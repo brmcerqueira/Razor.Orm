@@ -1,8 +1,9 @@
 ﻿namespace Razor.Orm
 {
-    internal enum MethodReturnType
+    internal enum TypeClassifier
     {
         Void,
+        Primitive,
         Enumerable,
         Object
     }

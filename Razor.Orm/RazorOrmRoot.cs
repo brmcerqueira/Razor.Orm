@@ -31,7 +31,7 @@ namespace Razor.Orm
         {
             RegisterTransform((s, i) => s.IsDBNull(i) ? null : s.GetString(i));
             RegisterTransform((s, i) => s.GetInt64(i));
-            RegisterTransform((s, i) => s.IsDBNull(i) ? (long?) null : s.GetInt64(i));
+            RegisterTransform((s, i) => s.IsDBNull(i) ? (long?)null : s.GetInt64(i));
             RegisterTransform((s, i) => s.IsDBNull(i) ? null : s.GetSqlBytes(i).Buffer);
             RegisterTransform((s, i) => s.GetByte(i));
             RegisterTransform((s, i) => s.IsDBNull(i) ? (byte?)null : s.GetByte(i));
@@ -60,7 +60,7 @@ namespace Razor.Orm
         {
             if (asBinds.ContainsKey(expression))
             {
-                return (string) asBinds[expression];
+                return (string)asBinds[expression];
             }
             else
             {
@@ -74,21 +74,45 @@ namespace Razor.Orm
             }
         }
 
+        internal static TypeClassifier Classifier(this Type type)
+        {
+            if (type == typeof(void))
+            {
+                return TypeClassifier.Void;
+            }
+            else if (type.IsPrimitive || type == typeof(string))
+            {
+                return TypeClassifier.Primitive;
+            }
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return TypeClassifier.Enumerable;
+            }
+            else if (type.IsPublic && !type.IsAbstract && !type.IsInterface && type.GetConstructor(Type.EmptyTypes) != null)
+            {
+                return TypeClassifier.Object;
+            }
+            else
+            {
+                throw new Exception($"O tipo {type.FullNameForCode()} não pode ser classificado.");
+            }
+        }
+
         internal static string FullNameForCode(this Type type)
         {
             if (type.IsGenericType)
             {
-                return $"{type.FullName.Remove(type.FullName.IndexOf('`'))}<{ string.Join(',', type.GenericTypeArguments.Select(p => p.FullNameForCode()))}>";
+                return $"global::{type.FullName.Remove(type.FullName.IndexOf('`'))}<{ string.Join(',', type.GenericTypeArguments.Select(p => p.FullNameForCode()))}>";
             }
             else
             {
-                return type.FullName;
+                return $"global::{type.FullName}";
             }
         }
 
-        internal static Func<SqlDataReader, int, T> GetTransform<T>()
+        internal static Func<SqlDataReader, int, object> GetTransform(Type type)
         {
-            return (Func<SqlDataReader, int, T>) transformers[typeof(T)];
+            return (Func<SqlDataReader, int, object>) transformers[type];
         }
 
         internal static void RegisterTransform<T>(Func<SqlDataReader, int, T> function)

@@ -48,7 +48,7 @@ namespace Razor.Orm
             var stringBuilder = new StringBuilder();
 
             stringBuilder.Append(@"namespace Razor.Orm.Templates { 
-                        public class GeneratedTemplateFactory : Razor.Orm.TemplateFactory { 
+                        public class GeneratedTemplateFactory : global::Razor.Orm.TemplateFactory { 
                         public GeneratedTemplateFactory() { ");
 
             foreach (var item in assembly.GetManifestResourceNames())
@@ -138,10 +138,15 @@ namespace Razor.Orm
             }
 
             var stringBuilder = new StringBuilder();
+            var stringBuilderMap = new StringBuilder();
 
             stringBuilder.Append($@"namespace Razor.Orm.Generated {{ 
-                public class {type.Name}_GenerateDao : Razor.Orm.Dao, {type.FullNameForCode()} {{ 
-                        public {type.Name}_GenerateDao() {{ }} ");
+                public class {type.Name}_GenerateDao : global::Razor.Orm.Dao, {type.FullNameForCode()} {{ 
+                public {type.Name}_GenerateDao(global::System.Data.SqlClient.SqlConnection sqlConnection) : 
+                base(sqlConnection) {{ }}");
+
+            stringBuilderMap.Append($@"protected override global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] GetMap() {{ 
+                return new global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] {{ ");
 
             var methodIndex = 0;
 
@@ -154,30 +159,21 @@ namespace Razor.Orm
                     throw new Exception($"O metodo {method.Name} não pode ter mais de 1 parametro.");
                 }
 
-                stringBuilder.Append($"public override ");
+                stringBuilder.Append("public ");
 
                 var returnType = method.ReturnType;
 
-                MethodReturnType? methodReturnType = null;
+                var returnTypeClassifier = returnType.Classifier();
 
-                if (returnType == typeof(void))
+                switch (returnTypeClassifier)
                 {
-                    methodReturnType = MethodReturnType.Void;
-                    stringBuilder.Append("void");
-                }
-                else if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    methodReturnType = MethodReturnType.Enumerable;
-                    stringBuilder.Append(returnType.FullNameForCode());
-                }
-                else if (returnType.IsPublic && !returnType.IsAbstract && !returnType.IsInterface && returnType.GetConstructor(Type.EmptyTypes) != null)
-                {
-                    methodReturnType = MethodReturnType.Object;
-                    stringBuilder.Append(returnType.FullNameForCode());
-                }
-                else
-                {
-                    throw new Exception($"O tipo {returnType.FullNameForCode()} não pode ser usado como retorno.");
+                    case TypeClassifier.Void:
+                        stringBuilder.Append("void");
+                        break;
+                    case TypeClassifier.Enumerable:
+                    case TypeClassifier.Object:
+                        stringBuilder.Append(returnType.FullNameForCode());
+                        break;
                 }
 
                 stringBuilder.Append($" {method.Name}(");
@@ -191,27 +187,82 @@ namespace Razor.Orm
 
                 stringBuilder.Append(") { ");
 
-                switch (methodReturnType.Value)
+                switch (returnTypeClassifier)
                 {
-                    case MethodReturnType.Void:
+                    case TypeClassifier.Void:
                         break;
-                    case MethodReturnType.Enumerable:
+                    case TypeClassifier.Enumerable:
+                        var columnIndex = 0;
+                        if (methodIndex > 0)
+                        {
+                            stringBuilderMap.Append(", ");
+                        }
+
+                        var stringBuilderTuple = new StringBuilder();
                         stringBuilder.Append($"return ExecuteReader(\"{type.Namespace}.{method.Name}.cshtml\", {methodIndex}, ");
                         stringBuilder.Append(parameter != null ? $"{parameter.Name}, " : "null, ");
-                        stringBuilder.Append("d => {});");
+                        stringBuilder.Append("d => { return ");
+                        GenerateReturnTypeCallback(stringBuilder, stringBuilderTuple, null, returnType.GenericTypeArguments[0], ref columnIndex);
+                        stringBuilderMap.Append(stringBuilderTuple);
+                        stringBuilderMap.Append("}");
+                        stringBuilder.Append("; });");
                         methodIndex++;
                         break;
-                    case MethodReturnType.Object:
+                    case TypeClassifier.Object:
                         break;
                 }
 
                 stringBuilder.Append(" } ");
             }
 
-            stringBuilder.Append(" } } }");
+            stringBuilder.Append(stringBuilderMap);
+
+            stringBuilder.Append(" }; } } }");
 
             logger?.LogInformation(stringBuilder.ToString());
-        }     
+        }
+
+        private void GenerateReturnTypeCallback(StringBuilder stringBuilderCallback, StringBuilder stringBuilderTuple, string path, Type type, ref int columnIndex)
+        {
+            switch (type.Classifier())
+            {
+                case TypeClassifier.Primitive:
+                    stringBuilderCallback.Append($" d.Get<{type.FullNameForCode()}>({columnIndex})");
+
+                    if (stringBuilderTuple.Length == 0)
+                    {
+                        stringBuilderTuple.Append(@" new global::System.Tuple<string,
+                            global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[] { ");
+                    }
+                    else
+                    {
+                        stringBuilderTuple.Append(", ");
+                    }
+
+                    stringBuilderTuple.Append($"global::System.Tuple.Create(\"{path.ToLower()}\", GetTransform(typeof({type.FullNameForCode()})))");        
+                    columnIndex++;
+                    break;
+                case TypeClassifier.Object:
+                    stringBuilderCallback.Append($" new {type.FullNameForCode()} () {{ ");
+
+                    var properties = type.GetProperties();
+
+                    for (int i = 0; i < properties.Length; i++)
+                    {
+                        var property = properties[i];
+                        stringBuilderCallback.Append($"{property.Name} = ");
+                        GenerateReturnTypeCallback(stringBuilderCallback, stringBuilderTuple, path != null ? $"{path}_{property.Name}" : property.Name, 
+                            property.PropertyType, ref columnIndex);
+                        if (i < properties.Length - 1)
+                        {
+                            stringBuilderCallback.Append(", ");
+                        }
+                    }
+
+                    stringBuilderCallback.Append(" }");
+                    break;
+            }
+        }
 
         private IReadOnlyList<MetadataReference> Resolve(DependencyContext dependencyContext)
         {

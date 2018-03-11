@@ -12,7 +12,7 @@ namespace Razor.Orm.Test
     public class TestResultDto
     {
         public string Name { get; set; }
-        public TestResultDto Result { get; set; }
+        public TestDto Result { get; set; }
     }
 
     public interface ITesteDao

@@ -1,7 +1,7 @@
 ﻿@using Razor.Orm
 @using Razor.Orm.Test
 @inherits QueryTemplate<TestDto, TestResultDto>
-select name @As(e => e.Name), fullname @As(e => e.Result.Result.Name) from users
+select name @As(e => e.Name), fullname @As(e => e.Result.Name) from users
 @using (Where())
 {
     if (Model.Name != null)
