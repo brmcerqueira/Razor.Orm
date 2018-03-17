@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 
 namespace Razor.Orm.Test
 {
-    public class TestDto
+    public class PeopleFilterDto
     {
         public string LikeFirstName { get; set; }
         public long[] EmailPromotionOptions { get; set; }
@@ -21,7 +21,7 @@ namespace Razor.Orm.Test
 
     public interface ITestDao
     {
-        IEnumerable<PeopleDto> GetAllPeople(TestDto dto);
+        IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
     }
 
     public class TestDaoFactory : DaoFactory
@@ -51,7 +51,7 @@ namespace Razor.Orm.Test
                 connection.Open();
                 var dao = testDaoFactory.CreateDao<ITestDao>(connection);
 
-                foreach (var item in dao.GetAllPeople(new TestDto()
+                foreach (var item in dao.GetAllPeople(new PeopleFilterDto()
                 {
                     LikeFirstName = "Ken",
                     EmailPromotionOptions = new long[] { 0, 1 }

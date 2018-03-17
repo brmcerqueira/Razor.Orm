@@ -1,6 +1,6 @@
 ﻿@using Razor.Orm
 @using Razor.Orm.Test
-@inherits QueryTemplate<TestDto, PeopleDto>
+@inherits QueryTemplate<PeopleFilterDto, PeopleDto>
 SELECT [BusinessEntityID] @As(e => e.Id)
       ,[PersonType]
       ,[NameStyle]

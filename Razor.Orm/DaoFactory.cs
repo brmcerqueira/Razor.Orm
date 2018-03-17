@@ -22,6 +22,7 @@ namespace Razor.Orm
     public abstract class DaoFactory
     {
         private ILogger logger;
+        protected Transformers Transformers { get; }
         private string assemblyName;
         private List<Type> types;
         private List<SyntaxTree> syntaxTrees;
@@ -41,6 +42,7 @@ namespace Razor.Orm
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
 
+            Transformers = new Transformers();
             assemblyName = Path.GetRandomFileName();
             types = new List<Type>();
             syntaxTrees = new List<SyntaxTree>();
@@ -53,37 +55,29 @@ namespace Razor.Orm
             var stringBuilder = new StringBuilder();
 
             stringBuilder.Append(@"namespace Razor.Orm.Templates { 
-                        internal class GeneratedTemplateFactory : global::Razor.Orm.TemplateFactory { 
-                        private GeneratedTemplateFactory() { ");
+                        internal static class GeneratedTemplateFactory {");
 
             foreach (var item in assembly.GetManifestResourceNames())
             {
                 var name = item.Replace('.', '_');
-                RazorCodeDocument razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
+                var razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
                 engine.Process(razorCodeDocument);
                 var generatedCode = razorCodeDocument.GetCSharpDocument().GeneratedCode;
                 Parse(generatedCode);
-                stringBuilder.Append($"Add(\"{item}\", new {name}_GeneratedTemplate());");
+
+                stringBuilder.Append($@"
+                    private static {name}_GeneratedTemplate private_{name}_instance = new {name}_GeneratedTemplate();
+
+                    internal static {name}_GeneratedTemplate {name}_Instance 
+                    {{ 
+                        get
+                        {{
+                            return private_{name}_instance;
+                        }}
+                    }} ");
             }
 
-            stringBuilder.Append(@" } 
-
-            private static GeneratedTemplateFactory _instance = null;
-
-            internal static GeneratedTemplateFactory Instance 
-            { 
-                get
-                {
-                    if (_instance == null) 
-                    {                       
-                        _instance = new GeneratedTemplateFactory();
-                    }
-
-                    return _instance;
-                }
-            }
-
-            } }");
+            stringBuilder.Append(" } }");
 
             var defaultTemplateFactoryCode = stringBuilder.ToString();
 
@@ -132,12 +126,15 @@ namespace Razor.Orm
                 var generatedAssembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream);
 
                 var sqlConnectionType = typeof(SqlConnection);
+                var transformersType = typeof(Transformers);
 
                 foreach (var item in generatedAssembly.GetExportedTypes())
                 {
                     var sqlConnectionParameter = Expression.Parameter(sqlConnectionType, "sqlConnection");
-                    hashtable.Add(types.First(e => e.IsAssignableFrom(item)), Expression.Lambda<Func<SqlConnection, object>>(Expression.New(item.GetConstructor(
-                    new Type[] { sqlConnectionType }), new Expression[] { sqlConnectionParameter }), new ParameterExpression[] { sqlConnectionParameter }).Compile());
+                    var transformersParameter = Expression.Parameter(transformersType, "transformers");               
+                    hashtable.Add(types.First(e => e.IsAssignableFrom(item)), Expression.Lambda<Func<SqlConnection, Transformers, object>>(Expression.New(item.GetConstructor(
+                    new Type[] { sqlConnectionType, transformersType }), new Expression[] { sqlConnectionParameter, transformersParameter }), 
+                    new ParameterExpression[] { sqlConnectionParameter, transformersParameter }).Compile());
                 }
             }
         }
@@ -148,11 +145,6 @@ namespace Razor.Orm
         }
 
         protected abstract void Setup();
-
-        protected void RegisterTransform<T>(Func<SqlDataReader, int, T> function)
-        {
-            RazorOrmRoot.RegisterTransform(function);
-        }
 
         protected void Define<T>()
         {
@@ -169,9 +161,9 @@ namespace Razor.Orm
             var stringBuilderMap = new StringBuilder();
 
             stringBuilder.Append($@"namespace Razor.Orm.Generated {{ 
-                public class {type.Name}_GenerateDao : global::Razor.Orm.Dao, {type.FullNameForCode()} {{ 
-                public {type.Name}_GenerateDao(global::System.Data.SqlClient.SqlConnection sqlConnection) : 
-                base(sqlConnection, global::Razor.Orm.Templates.GeneratedTemplateFactory.Instance) {{ }}");
+                public class {type.Name}_GenerateDao : global::Razor.Orm.Dao, {FullNameForCode(type)} {{ 
+                public {type.Name}_GenerateDao(global::System.Data.SqlClient.SqlConnection sqlConnection, global::Razor.Orm.Transformers transformers) : 
+                base(sqlConnection, transformers) {{ }}");
 
             stringBuilderMap.Append($@"protected override global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] GetMap() {{ 
                 return new global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] {{ ");
@@ -191,7 +183,7 @@ namespace Razor.Orm
 
                 var returnType = method.ReturnType;
 
-                var returnTypeClassifier = returnType.Classifier();
+                var returnTypeClassifier = Classifier(returnType);
 
                 switch (returnTypeClassifier)
                 {
@@ -200,7 +192,7 @@ namespace Razor.Orm
                         break;
                     case TypeClassifier.Enumerable:
                     case TypeClassifier.Object:
-                        stringBuilder.Append(returnType.FullNameForCode());
+                        stringBuilder.Append(FullNameForCode(returnType));
                         break;
                 }
 
@@ -210,7 +202,7 @@ namespace Razor.Orm
 
                 if (parameter != null)
                 {
-                    stringBuilder.Append($"{parameter.ParameterType.FullNameForCode()} {parameter.Name}");
+                    stringBuilder.Append($"{FullNameForCode(parameter.ParameterType)} {parameter.Name}");
                 }
 
                 stringBuilder.Append(") { ");
@@ -227,7 +219,9 @@ namespace Razor.Orm
                         }
 
                         var stringBuilderTuple = new StringBuilder();
-                        stringBuilder.Append($"return ExecuteReader(\"{type.Namespace}.{method.Name}.cshtml\", {methodIndex}, ");
+                        stringBuilder.Append($@"return ExecuteReader(
+                            global::Razor.Orm.Templates.GeneratedTemplateFactory.{type.Namespace.Replace('.', '_')}_{method.Name}_cshtml_Instance, 
+                            {methodIndex}, ");
                         stringBuilder.Append(parameter != null ? $"{parameter.Name}, " : "null, ");
                         stringBuilder.Append("d => { return ");
                         GenerateReturnTypeCallback(stringBuilder, stringBuilderTuple, null, returnType.GenericTypeArguments[0], ref columnIndex);
@@ -254,10 +248,10 @@ namespace Razor.Orm
 
         private void GenerateReturnTypeCallback(StringBuilder stringBuilderCallback, StringBuilder stringBuilderTuple, string path, Type type, ref int columnIndex)
         {
-            switch (type.Classifier())
+            switch (Classifier(type))
             {
                 case TypeClassifier.Primitive:
-                    stringBuilderCallback.Append($" d.Get<{type.FullNameForCode()}>({columnIndex})");
+                    stringBuilderCallback.Append($" d.Get<{FullNameForCode(type)}>({columnIndex})");
 
                     if (stringBuilderTuple.Length == 0)
                     {
@@ -269,11 +263,11 @@ namespace Razor.Orm
                         stringBuilderTuple.Append(", ");
                     }
 
-                    stringBuilderTuple.Append($"global::System.Tuple.Create(\"{path.ToLower()}\", GetTransform(typeof({type.FullNameForCode()})))");        
+                    stringBuilderTuple.Append($"global::System.Tuple.Create(\"{path.ToLower()}\", GetTransform(typeof({FullNameForCode(type)})))");        
                     columnIndex++;
                     break;
                 case TypeClassifier.Object:
-                    stringBuilderCallback.Append($" new {type.FullNameForCode()} () {{ ");
+                    stringBuilderCallback.Append($" new {FullNameForCode(type)} () {{ ");
 
                     var properties = type.GetProperties();
 
@@ -296,7 +290,43 @@ namespace Razor.Orm
 
         public T CreateDao<T>(SqlConnection sqlConnection)
         {
-            return (T) (hashtable[typeof(T)] as Func<SqlConnection, object>)(sqlConnection);
+            return (T) (hashtable[typeof(T)] as Func<SqlConnection, Transformers, object>)(sqlConnection, Transformers);
+        }
+
+        private TypeClassifier Classifier(Type type)
+        {
+            if (type == typeof(void))
+            {
+                return TypeClassifier.Void;
+            }
+            else if (Transformers.Contains(type))
+            {
+                return TypeClassifier.Primitive;
+            }
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return TypeClassifier.Enumerable;
+            }
+            else if (type.IsPublic && !type.IsAbstract && !type.IsInterface && type.GetConstructor(Type.EmptyTypes) != null)
+            {
+                return TypeClassifier.Object;
+            }
+            else
+            {
+                throw new Exception($"O tipo {FullNameForCode(type)} não pode ser classificado.");
+            }
+        }
+
+        internal string FullNameForCode(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                return $"global::{type.FullName.Remove(type.FullName.IndexOf('`'))}<{ string.Join(',', type.GenericTypeArguments.Select(p => FullNameForCode(p)))}>";
+            }
+            else
+            {
+                return $"global::{type.FullName}";
+            }
         }
 
         private IReadOnlyList<MetadataReference> Resolve(DependencyContext dependencyContext)
