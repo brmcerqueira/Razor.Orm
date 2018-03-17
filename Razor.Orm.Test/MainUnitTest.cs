@@ -8,26 +8,20 @@ namespace Razor.Orm.Test
 {
     public class TestDto
     {
-        public string Name { get; set; }
-        public long[] Ids { get; set; }
+        public string LikeFirstName { get; set; }
+        public long[] EmailPromotionOptions { get; set; }
     }
 
-    public class TestResultDto
+    public class PeopleDto
     {
-        public string Name { get; set; }
-    }
-
-    public class MarkingDto
-    {
-        public long Id { get; set; }
+        public int Id { get; set; }
         public DateTime Date { get; set; }
-        public long CollaboratorId { get; set; }
+        public string FirstName { get; set; }
     }
 
-    public interface ITesteDao
+    public interface ITestDao
     {
-        IEnumerable<TestResultDto> Test(TestDto dto);
-        IEnumerable<MarkingDto> GetAllMarkings(TestDto dto);
+        IEnumerable<PeopleDto> GetAllPeople(TestDto dto);
     }
 
     public class TestDaoFactory : DaoFactory
@@ -40,7 +34,7 @@ namespace Razor.Orm.Test
 
         protected override void Setup()
         {
-            Define<ITesteDao>();
+            Define<ITestDao>();
         }
     }
 
@@ -52,14 +46,18 @@ namespace Razor.Orm.Test
         {
             var testDaoFactory = new TestDaoFactory();
 
-            using (var connection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=even3_pratical_test;Integrated Security=True"))
+            using (var connection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True"))
             {
                 connection.Open();
-                var dao = testDaoFactory.CreateDao<ITesteDao>(connection);
+                var dao = testDaoFactory.CreateDao<ITestDao>(connection);
 
-                foreach (var item in dao.GetAllMarkings(new TestDto() { Ids = new long[] { 5, 6 } }))
+                foreach (var item in dao.GetAllPeople(new TestDto()
                 {
-                    Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, CollaboratorId: {item.CollaboratorId}");
+                    LikeFirstName = "Ken",
+                    EmailPromotionOptions = new long[] { 0, 1 }
+                }))
+                {
+                    Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
                 }
             }         
         }

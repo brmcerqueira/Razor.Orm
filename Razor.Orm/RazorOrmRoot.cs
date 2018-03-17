@@ -64,7 +64,7 @@ namespace Razor.Orm
             {
                 var stringBuilder = new StringBuilder();
                 Stringify(stringBuilder, expression.Body);
-                stringBuilder.Append("as '");
+                stringBuilder.Insert(0, "as '");
                 stringBuilder.Append("'");
                 var result = stringBuilder.ToString();
                 asBinds.Add(expression, result);

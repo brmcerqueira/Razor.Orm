@@ -1,0 +1,29 @@
+﻿@using Razor.Orm
+@using Razor.Orm.Test
+@inherits QueryTemplate<TestDto, PeopleDto>
+SELECT [BusinessEntityID] @As(e => e.Id)
+      ,[PersonType]
+      ,[NameStyle]
+      ,[Title]
+      ,[FirstName]
+      ,[MiddleName]
+      ,[LastName]
+      ,[Suffix]
+      ,[EmailPromotion]
+      ,[AdditionalContactInfo]
+      ,[Demographics]
+      ,[rowguid]
+      ,[ModifiedDate] @As(e => e.Date)
+    FROM [Person].[Person]
+    @using (var w = Where())
+    {
+        if (!string.IsNullOrEmpty(Model.LikeFirstName))
+        {
+            <text>[FirstName] LIKE @Par($"%{Model.LikeFirstName}%")</text> 
+        }
+        if (Model.EmailPromotionOptions != null && Model.EmailPromotionOptions.Length > 0)
+        {
+            w.And();
+            <text>[EmailPromotion] @In(Model.EmailPromotionOptions)</text>
+        }
+    }

@@ -7,13 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="GetAllMarkings.cshtml" />
-    <None Remove="Test.cshtml" />
+    <None Remove="GetAllPeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="GetAllMarkings.cshtml" />
-    <EmbeddedResource Include="Test.cshtml" />
+    <EmbeddedResource Include="GetAllPeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
