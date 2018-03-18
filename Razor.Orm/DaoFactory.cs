@@ -60,7 +60,27 @@ namespace Razor.Orm
             foreach (var item in assembly.GetManifestResourceNames())
             {
                 var name = item.Replace('.', '_');
-                var razorCodeDocument = RazorCodeDocument.Create(RazorSourceDocument.ReadFrom(assembly.GetManifestResourceStream(item), name));
+
+                RazorSourceDocument razorSourceDocument = null;
+
+                var stream = new MemoryStream();
+
+                assembly.GetManifestResourceStream(item).CopyTo(stream);
+
+                using (stream)
+                using (var writer = new StreamWriter(stream, Encoding.UTF8))
+                {              
+                    writer.WriteLine("@using System");
+                    writer.WriteLine("@using System");
+                    writer.WriteLine("@using System.Collections.Generic");
+                    writer.WriteLine("@using System.Linq");
+                    writer.WriteLine("@using System.Threading.Tasks");
+                    writer.Flush();
+                    stream.Position = 0;
+                    razorSourceDocument = RazorSourceDocument.ReadFrom(stream, name, Encoding.UTF8);
+                }
+
+                var razorCodeDocument = RazorCodeDocument.Create(razorSourceDocument);
                 engine.Process(razorCodeDocument);
                 var generatedCode = razorCodeDocument.GetCSharpDocument().GeneratedCode;
                 Parse(generatedCode);
@@ -172,13 +192,6 @@ namespace Razor.Orm
 
             foreach (var method in type.GetMethods())
             {
-                var parameters = method.GetParameters();
-
-                if (parameters.Length > 1)
-                {
-                    throw new Exception($"O metodo {method.Name} não pode ter mais de 1 parametro.");
-                }
-
                 stringBuilder.Append("public ");
 
                 var returnType = method.ReturnType;
@@ -190,6 +203,7 @@ namespace Razor.Orm
                     case TypeClassifier.Void:
                         stringBuilder.Append("void");
                         break;
+                    case TypeClassifier.Primitive:
                     case TypeClassifier.Enumerable:
                     case TypeClassifier.Object:
                         stringBuilder.Append(FullNameForCode(returnType));
@@ -198,39 +212,51 @@ namespace Razor.Orm
 
                 stringBuilder.Append($" {method.Name}(");
 
-                ParameterInfo parameter = parameters.Length == 1 ? parameters[0] : null;
+                var stringBuilderModel = new StringBuilder();
+                var parameters = method.GetParameters();
 
-                if (parameter != null)
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    stringBuilder.Append($"{FullNameForCode(parameter.ParameterType)} {parameter.Name}");
+                    stringBuilder.Append($"{FullNameForCode(parameters[i].ParameterType)} {parameters[i].Name}");
+
+                    stringBuilderModel.Append(parameters[i].Name);
+
+                    if (i < parameters.Length - 1)
+                    {
+                        stringBuilder.Append(", ");
+                        stringBuilderModel.Append(", ");
+                    }
+                }
+
+                if (parameters.Length > 1)
+                {
+                    stringBuilderModel.Insert(0, "global::System.Tuple.Create(");
+                    stringBuilderModel.Append(")");
+                }
+
+                if (stringBuilderModel.Length == 0)
+                {
+                    stringBuilderModel.Append("null");
                 }
 
                 stringBuilder.Append(") { ");
 
+                var template = $"global::Razor.Orm.Templates.GeneratedTemplateFactory.{type.Namespace.Replace('.', '_')}_{method.Name}_cshtml_Instance";
+
                 switch (returnTypeClassifier)
                 {
                     case TypeClassifier.Void:
+                        stringBuilder.Append($"Execute({template}, {stringBuilderModel});");
+                        break;
+                    case TypeClassifier.Primitive:
+                        stringBuilder.Append($"return Execute<{FullNameForCode(returnType)}>({template}, {stringBuilderModel});");
                         break;
                     case TypeClassifier.Enumerable:
-                        var columnIndex = 0;
-                        if (methodIndex > 0)
-                        {
-                            stringBuilderMap.Append(", ");
-                        }
-
-                        var stringBuilderTuple = new StringBuilder();
-                        stringBuilder.Append($@"return ExecuteReader(
-                            global::Razor.Orm.Templates.GeneratedTemplateFactory.{type.Namespace.Replace('.', '_')}_{method.Name}_cshtml_Instance, 
-                            {methodIndex}, ");
-                        stringBuilder.Append(parameter != null ? $"{parameter.Name}, " : "null, ");
-                        stringBuilder.Append("d => { return ");
-                        GenerateReturnTypeCallback(stringBuilder, stringBuilderTuple, null, returnType.GenericTypeArguments[0], ref columnIndex);
-                        stringBuilderMap.Append(stringBuilderTuple);
-                        stringBuilderMap.Append("}");
-                        stringBuilder.Append("; });");
-                        methodIndex++;
+                        GenerateExecuteWithParse(stringBuilder, stringBuilderMap, returnType.GenericTypeArguments[0], 
+                            $"ExecuteEnumerable({template}, {stringBuilderModel}", ref methodIndex);
                         break;
                     case TypeClassifier.Object:
+                        GenerateExecuteWithParse(stringBuilder, stringBuilderMap, returnType, $"Execute({template}, {stringBuilderModel}", ref methodIndex);
                         break;
                 }
 
@@ -246,12 +272,29 @@ namespace Razor.Orm
             Parse(code);
         }
 
-        private void GenerateReturnTypeCallback(StringBuilder stringBuilderCallback, StringBuilder stringBuilderTuple, string path, Type type, ref int columnIndex)
+        private void GenerateExecuteWithParse(StringBuilder stringBuilder, StringBuilder stringBuilderMap, Type type, string method, ref int methodIndex)
+        {
+            var columnIndex = 0;
+            if (methodIndex > 0)
+            {
+                stringBuilderMap.Append(", ");
+            }
+
+            var stringBuilderTuple = new StringBuilder();
+            stringBuilder.Append($"return {method}, {methodIndex}, d => {{ return ");
+            GenerateReturnParse(stringBuilder, stringBuilderTuple, type, null, ref columnIndex);
+            stringBuilderMap.Append(stringBuilderTuple);
+            stringBuilderMap.Append("}");
+            stringBuilder.Append("; });");
+            methodIndex++;
+        }
+
+        private void GenerateReturnParse(StringBuilder stringBuilder, StringBuilder stringBuilderTuple, Type type, string path, ref int columnIndex)
         {
             switch (Classifier(type))
             {
                 case TypeClassifier.Primitive:
-                    stringBuilderCallback.Append($" d.Get<{FullNameForCode(type)}>({columnIndex})");
+                    stringBuilder.Append($" d.Get<{FullNameForCode(type)}>({columnIndex})");
 
                     if (stringBuilderTuple.Length == 0)
                     {
@@ -267,23 +310,23 @@ namespace Razor.Orm
                     columnIndex++;
                     break;
                 case TypeClassifier.Object:
-                    stringBuilderCallback.Append($" new {FullNameForCode(type)} () {{ ");
+                    stringBuilder.Append($" new {FullNameForCode(type)} () {{ ");
 
                     var properties = type.GetProperties();
 
                     for (int i = 0; i < properties.Length; i++)
                     {
                         var property = properties[i];
-                        stringBuilderCallback.Append($"{property.Name} = ");
-                        GenerateReturnTypeCallback(stringBuilderCallback, stringBuilderTuple, path != null ? $"{path}_{property.Name}" : property.Name, 
-                            property.PropertyType, ref columnIndex);
+                        stringBuilder.Append($"{property.Name} = ");
+                        GenerateReturnParse(stringBuilder, stringBuilderTuple, property.PropertyType, 
+                            path != null ? $"{path}_{property.Name}" : property.Name, ref columnIndex);
                         if (i < properties.Length - 1)
                         {
-                            stringBuilderCallback.Append(", ");
+                            stringBuilder.Append(", ");
                         }
                     }
 
-                    stringBuilderCallback.Append(" }");
+                    stringBuilder.Append(" }");
                     break;
             }
         }

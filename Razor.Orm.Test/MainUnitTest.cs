@@ -21,6 +21,9 @@ namespace Razor.Orm.Test
 
     public interface ITestDao
     {
+        void UpdatePeople(PeopleFilterDto dto, string title);
+        int CountPeople(PeopleFilterDto dto);
+        PeopleDto GetSinglePeople(PeopleFilterDto dto);
         IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
     }
 
@@ -41,14 +44,83 @@ namespace Razor.Orm.Test
     [TestClass]
     public class MainUnitTest
     {
-        [TestMethod]
-        public void TestSqlTemplate()
-        {
-            var testDaoFactory = new TestDaoFactory();
+        private TestDaoFactory testDaoFactory;
 
-            using (var connection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True"))
+        public MainUnitTest()
+        {
+            testDaoFactory = new TestDaoFactory();
+        }
+
+        private SqlConnection Connection
+        {
+            get
+            {
+                return new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True");
+            }
+        }
+
+        [TestMethod]
+        public void UpdatePeopleTest()
+        {
+            using (var connection = Connection)
             {
                 connection.Open();
+
+                var dao = testDaoFactory.CreateDao<ITestDao>(connection);
+
+                dao.UpdatePeople(new PeopleFilterDto()
+                {
+                    LikeFirstName = "E",
+                    EmailPromotionOptions = new long[] { 0, 1 }
+                }, "Test");
+            }
+        }
+
+        [TestMethod]
+        public void CountPeopleTest()
+        {
+            using (var connection = Connection)
+            {
+                connection.Open();
+
+                var dao = testDaoFactory.CreateDao<ITestDao>(connection);
+
+                var item = dao.CountPeople(new PeopleFilterDto()
+                {
+                    LikeFirstName = "Ken",
+                    EmailPromotionOptions = new long[] { 0, 1 }
+                });
+
+                Console.WriteLine($"Count: {item}");
+            }
+        }
+
+        [TestMethod]
+        public void GetSinglePeopleTest()
+        {
+            using (var connection = Connection)
+            {
+                connection.Open();
+
+                var dao = testDaoFactory.CreateDao<ITestDao>(connection);
+
+                var item = dao.GetSinglePeople(new PeopleFilterDto()
+                {
+                    LikeFirstName = "Ken",
+                    EmailPromotionOptions = new long[] { 0, 1 }
+                });
+
+                Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
+            }         
+        }
+
+        [TestMethod]
+        public void GetAllPeopleTest()
+        {
+            using (var connection = Connection)
+            {
+                connection.Open();
+
                 var dao = testDaoFactory.CreateDao<ITestDao>(connection);
 
                 foreach (var item in dao.GetAllPeople(new PeopleFilterDto()
@@ -59,7 +131,7 @@ namespace Razor.Orm.Test
                 {
                     Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
                 }
-            }         
+            }
         }
     }
 }

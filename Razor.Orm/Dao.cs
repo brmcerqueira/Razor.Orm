@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace Razor.Orm
 {
@@ -25,25 +26,63 @@ namespace Razor.Orm
             return Transformers.GetTransform(type);
         }
 
-        protected IEnumerable<T> ExecuteReader<T>(ISqlTemplate sqlTemplate, int methodIndex, object model, Func<DataReader, T> transform)
+        private SqlCommand CreateCommand(ISqlTemplate sqlTemplate, object model)
         {
-            using (var sqlCommand = SqlConnection.CreateCommand())
+            var sqlCommand = SqlConnection.CreateCommand();
+
+            var sqlTemplateResult = sqlTemplate.Process(model);
+
+            sqlCommand.CommandText = sqlTemplateResult.Content;
+
+            sqlCommand.Parameters.AddRange(sqlTemplateResult.Parameters);
+
+            return sqlCommand;
+        }
+
+        protected void Execute(ISqlTemplate sqlTemplate, object model)
+        {
+            using (var sqlCommand = CreateCommand(sqlTemplate, model))
             {
-                var sqlTemplateResult = sqlTemplate.Process(model);
+                sqlCommand.ExecuteNonQuery();
+            }
+        }
 
-                sqlCommand.CommandText = sqlTemplateResult.Content;
-
-                sqlCommand.Parameters.AddRange(sqlTemplateResult.Parameters);
-
+        protected IEnumerable<T> ExecuteEnumerable<T>(ISqlTemplate sqlTemplate, object model, int methodIndex, Func<DataReader, T> parse)
+        {
+            using (var sqlCommand = CreateCommand(sqlTemplate, model))
+            {
                 using (var sqlDataReader = sqlCommand.ExecuteReader(CommandBehavior.Default))
                 {
                     var dataReader = new DataReader(sqlDataReader, Map[methodIndex]);
                     while (sqlDataReader.Read())
                     {
-                        yield return transform(dataReader);
+                        yield return parse(dataReader);
                     }
                 }
             }  
+        }
+
+        protected T Execute<T>(ISqlTemplate sqlTemplate, object model)
+        {
+            var result = default(T);
+
+            using (var sqlCommand = CreateCommand(sqlTemplate, model))
+            {
+                using (var sqlDataReader = sqlCommand.ExecuteReader(CommandBehavior.Default))
+                {
+                    if (sqlDataReader.Read())
+                    {
+                        result = (T) GetTransform(typeof(T)).Invoke(sqlDataReader, 0); 
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        protected T Execute<T>(ISqlTemplate sqlTemplate, object model, int methodIndex, Func<DataReader, T> parse)
+        {
+            return ExecuteEnumerable(sqlTemplate, model, methodIndex, parse).FirstOrDefault();
         }
     }
 }

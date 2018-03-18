@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="CountPeople.cshtml" />
     <None Remove="GetAllPeople.cshtml" />
+    <None Remove="GetSinglePeople.cshtml" />
+    <None Remove="UpdatePeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="UpdatePeople.cshtml" />
+    <EmbeddedResource Include="CountPeople.cshtml" />
+    <EmbeddedResource Include="GetSinglePeople.cshtml" />
     <EmbeddedResource Include="GetAllPeople.cshtml" />
   </ItemGroup>
 

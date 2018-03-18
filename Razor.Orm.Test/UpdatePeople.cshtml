@@ -1,0 +1,17 @@
+﻿@using Razor.Orm
+@using Razor.Orm.Test
+@inherits SqlTemplate<Tuple<PeopleFilterDto, string>>
+UPDATE [Person].[Person]
+   SET [Title] = @Par(Model.Item2)
+@using (var w = Where())
+{
+    if (!string.IsNullOrEmpty(Model.Item1.LikeFirstName))
+    {
+        <text>[FirstName] LIKE @Par($"%{Model.Item1.LikeFirstName}%")</text>
+    }
+    if (Model.Item1.EmailPromotionOptions != null && Model.Item1.EmailPromotionOptions.Length > 0)
+    {
+        w.And();
+        <text>[EmailPromotion] @In(Model.Item1.EmailPromotionOptions)</text>
+    }
+}
