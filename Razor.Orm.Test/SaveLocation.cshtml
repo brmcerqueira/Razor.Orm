@@ -1,0 +1,31 @@
+﻿@using Razor.Orm
+@using Razor.Orm.Test
+@inherits SqlTemplate<LocationDto>
+@if (Model.LocationID.HasValue)
+{
+<text>
+UPDATE [Production].[Location]
+   SET [Name] = @Par(Model.Name)
+      ,[CostRate] = @Par(Model.CostRate)
+      ,[Availability] = @Par(Model.Availability)
+      ,[ModifiedDate] = @Par(Model.ModifiedDate)
+ WHERE [LocationID] = @Par(Model.LocationID)
+</text>
+}
+else
+{
+<text>
+INSERT INTO [Production].[Location]
+        ([Name]
+        ,[CostRate]
+        ,[Availability]
+        ,[ModifiedDate])
+    VALUES
+        (@Par(Model.Name)
+        ,@Par(Model.CostRate)
+        ,@Par(Model.Availability)
+        ,@Par(Model.ModifiedDate))
+
+SELECT SCOPE_IDENTITY()
+</text>
+}

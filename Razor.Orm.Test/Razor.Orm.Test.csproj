@@ -10,10 +10,12 @@
     <None Remove="CountPeople.cshtml" />
     <None Remove="GetAllPeople.cshtml" />
     <None Remove="GetSinglePeople.cshtml" />
+    <None Remove="SaveLocation.cshtml" />
     <None Remove="UpdatePeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SaveLocation.cshtml" />
     <EmbeddedResource Include="UpdatePeople.cshtml" />
     <EmbeddedResource Include="CountPeople.cshtml" />
     <EmbeddedResource Include="GetSinglePeople.cshtml" />

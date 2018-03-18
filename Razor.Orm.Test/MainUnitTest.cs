@@ -19,8 +19,18 @@ namespace Razor.Orm.Test
         public string FirstName { get; set; }
     }
 
+    public class LocationDto
+    {
+        public int? LocationID { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public string Name { get; set; }
+        public decimal CostRate { get; set; }
+        public decimal Availability { get; set; }
+    }
+
     public interface ITestDao
     {
+        decimal SaveLocation(LocationDto dto);
         void UpdatePeople(PeopleFilterDto dto, string title);
         int CountPeople(PeopleFilterDto dto);
         PeopleDto GetSinglePeople(PeopleFilterDto dto);
@@ -56,6 +66,28 @@ namespace Razor.Orm.Test
             get
             {
                 return new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True");
+            }
+        }
+
+        [TestMethod]
+        public void SaveLocationTest()
+        {
+            using (var connection = Connection)
+            {
+                connection.Open();
+
+                var dao = testDaoFactory.CreateDao<ITestDao>(connection);
+
+                var item = dao.SaveLocation(new LocationDto()
+                {
+                    LocationID = 61,
+                    ModifiedDate = DateTime.Now,
+                    Name = Guid.NewGuid().ToString(),
+                    CostRate = 1,
+                    Availability = 2
+                });
+
+                Console.WriteLine($"Id: {item}");
             }
         }
 
