@@ -1,16 +1,18 @@
 ﻿using System;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template
 {
-    public class WhereDisposable : IDisposable
+    public abstract class SmartDisposable : IDisposable
     {
-        internal WhereDisposable(SqlWriter sqlWriter)
+        internal SmartDisposable(SqlWriter sqlWriter, string initText)
         {
             sqlWriter.CreateContext();
             SqlWriter = sqlWriter;
+            InitText = initText;
         }
 
         private SqlWriter SqlWriter { get; }
+        private string InitText { get; }
 
         public void ConnectWith(string value)
         {
@@ -20,21 +22,11 @@ namespace Razor.Orm
             }
         }
 
-        public void And()
-        {
-            ConnectWith(" AND ");
-        }
-
-        public void Or()
-        {
-            ConnectWith(" OR ");
-        }
-
         public void Dispose()
         {
             if (SqlWriter.CurrentLength > 0)
             {
-                SqlWriter.WriteInit(" WHERE ");
+                SqlWriter.WriteInit(InitText);
                 SqlWriter.ConsolidateContext();
             }
             else

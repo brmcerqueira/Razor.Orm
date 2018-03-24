@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using System.Collections.Generic;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template.Interpreter
 {
     public class SqlIntermediateNodeWalker : IntermediateNodeWalker
     {

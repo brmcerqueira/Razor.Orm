@@ -1,14 +1,21 @@
-﻿@using Razor.Orm
+﻿@using Razor.Orm.Template
 @using Razor.Orm.Test
 @inherits SqlTemplate<LocationDto>
 @if (Model.LocationID.HasValue)
 {
 <text>
 UPDATE [Production].[Location]
-   SET [Name] = @Par(Model.Name)
-      ,[CostRate] = @Par(Model.CostRate)
-      ,[Availability] = @Par(Model.Availability)
-      ,[ModifiedDate] = @Par(Model.ModifiedDate)
+    @using (var s = SmartSet())
+    {
+        if (!string.IsNullOrEmpty(Model.Name))
+        {
+            <text>[Name] = @Par(Model.Name)</text> 
+        }
+        s.End();
+        <text>[CostRate] = @Par(Model.CostRate)
+        ,[Availability] = @Par(Model.Availability)
+        ,[ModifiedDate] = @Par(Model.ModifiedDate)</text>
+    }
  WHERE [LocationID] = @Par(Model.LocationID)
 </text>
 }

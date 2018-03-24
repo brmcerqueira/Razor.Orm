@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using System.Linq;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template.Interpreter
 {
     public class SqlModelDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
     {

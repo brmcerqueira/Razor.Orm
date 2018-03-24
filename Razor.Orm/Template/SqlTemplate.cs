@@ -1,12 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Dynamic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template
 {
     public abstract class SqlTemplate<TModel> : ISqlTemplate
     {
@@ -123,9 +125,22 @@ namespace Razor.Orm
             return new EscapeString($"in ({string.Join(',', values)})");
         }
 
-        public WhereDisposable Where()
+        public SmartWhere SmartWhere()
         {
-            return new WhereDisposable(sqlWriter);
+            return new SmartWhere(sqlWriter);
+        }
+
+        public SmartSet SmartSet()
+        {
+            return new SmartSet(sqlWriter);
+        }  
+    }
+
+    public abstract class SqlTemplate<TModel, TResult> : SqlTemplate<TModel>
+    {
+        public EscapeString As<T>(Expression<Func<TResult, T>> expression)
+        {
+            return new EscapeString(expression.GetAsBind());
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Data.SqlClient;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template
 {
     public struct SqlTemplateResult
     {

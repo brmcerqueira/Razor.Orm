@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
+using Razor.Orm.Template.Interpreter;
 
 namespace Razor.Orm
 {
@@ -54,7 +55,7 @@ namespace Razor.Orm
 
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.Append(@"namespace Razor.Orm.Templates { 
+            stringBuilder.Append(@"namespace Razor.Orm.Template { 
                         internal static class GeneratedTemplateFactory {");
 
             foreach (var item in assembly.GetManifestResourceNames())
@@ -241,7 +242,7 @@ namespace Razor.Orm
 
                 stringBuilder.Append(") { ");
 
-                var template = $"global::Razor.Orm.Templates.GeneratedTemplateFactory.{type.Namespace.Replace('.', '_')}_{method.Name}_cshtml_Instance";
+                var template = $"global::Razor.Orm.Template.GeneratedTemplateFactory.{type.Namespace.Replace('.', '_')}_{method.Name}_cshtml_Instance";
 
                 switch (returnTypeClassifier)
                 {

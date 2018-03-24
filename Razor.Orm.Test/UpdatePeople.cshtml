@@ -1,9 +1,9 @@
-﻿@using Razor.Orm
+﻿@using Razor.Orm.Template
 @using Razor.Orm.Test
 @inherits SqlTemplate<Tuple<PeopleFilterDto, string>>
 UPDATE [Person].[Person]
    SET [Title] = @Par(Model.Item2)
-@using (var w = Where())
+@using (var w = SmartWhere())
 {
     if (!string.IsNullOrEmpty(Model.Item1.LikeFirstName))
     {

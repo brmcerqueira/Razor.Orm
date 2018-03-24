@@ -1,4 +1,4 @@
-﻿namespace Razor.Orm
+﻿namespace Razor.Orm.Template
 {
     public interface ISqlTemplate
     {

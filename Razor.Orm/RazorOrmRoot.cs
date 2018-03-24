@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Razor.Orm
 {
-    public static class RazorOrmRoot
+    internal static class RazorOrmRoot
     {
         private static Hashtable asBinds = new Hashtable();
         internal static ILoggerFactory LoggerFactory { get; set; }

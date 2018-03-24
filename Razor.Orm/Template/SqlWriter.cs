@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template
 {
     internal class SqlWriter
     {

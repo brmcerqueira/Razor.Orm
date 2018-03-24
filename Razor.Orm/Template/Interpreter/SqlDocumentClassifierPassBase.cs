@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template.Interpreter
 {
     public class SqlDocumentClassifierPassBase : DocumentClassifierPassBase
     {
@@ -17,10 +17,10 @@ namespace Razor.Orm
         {
             base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
         
-            @namespace.Content = "Razor.Orm.Templates";
+            @namespace.Content = "Razor.Orm.Template";
 
             @class.ClassName = $"{codeDocument.Source.FilePath}_GeneratedTemplate";
-            @class.BaseType = "global::Razor.Orm.SqlTemplate<TModel>";
+            @class.BaseType = "global::Razor.Orm.Template.SqlTemplate<TModel>";
             @class.Modifiers.Clear();
             @class.Modifiers.Add("internal");
 

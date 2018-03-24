@@ -1,9 +1,9 @@
-﻿@using Razor.Orm
+﻿@using Razor.Orm.Template
 @using Razor.Orm.Test
 @inherits SqlTemplate<PeopleFilterDto>
 SELECT COUNT(*)
     FROM [Person].[Person]
-    @using (var w = Where())
+    @using (var w = SmartWhere())
     {
         if (!string.IsNullOrEmpty(Model.LikeFirstName))
         {

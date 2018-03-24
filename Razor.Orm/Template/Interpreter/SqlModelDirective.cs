@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Razor.Language;
 
-namespace Razor.Orm
+namespace Razor.Orm.Template.Interpreter
 {
     public static class SqlModelDirective
     {
