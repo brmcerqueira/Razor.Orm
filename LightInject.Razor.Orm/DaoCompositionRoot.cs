@@ -30,7 +30,7 @@ namespace LightInject.Razor.Orm
             }
             else
             {
-                this.serviceRegistry.Register(CreateSqlConnection, Lifetime);
+                this.serviceRegistry.Register(CreateSqlConnection);
             }
 
             this.serviceRegistry.Register(f => Transformers);

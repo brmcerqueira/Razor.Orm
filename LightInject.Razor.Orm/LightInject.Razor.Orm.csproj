@@ -2,11 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <PackageProjectUrl>https://github.com/brmcerqueira/Razor.Orm</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/brmcerqueira/Razor.Orm</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <AssemblyVersion>1.0.0.2</AssemblyVersion>
+    <Version>1.0.2</Version>
+    <Description>CompositionRoot do LightInject para criação dos Daos do Razor.Orm</Description>
+    <FileVersion>1.0.0.2</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LightInject" Version="5.1.2" />
-    <PackageReference Include="Razor.Orm" Version="1.0.1" />
+    <PackageReference Include="Razor.Orm" Version="1.0.2" />
   </ItemGroup>
 
 </Project>
