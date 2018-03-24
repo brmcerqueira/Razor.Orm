@@ -385,6 +385,8 @@ namespace Razor.Orm
                 }
             }
 
+            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(Assembly.GetExecutingAssembly().Location).GetReference());
+
             return metadataRerefences;
         }
     }

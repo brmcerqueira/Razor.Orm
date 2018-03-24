@@ -9,20 +9,7 @@ namespace Razor.Orm
     public static class RazorOrmLogger
     {
         private static Hashtable asBinds = new Hashtable();
-        private static ILoggerFactory _loggerFactory = null;
-
-        public static ILoggerFactory LoggerFactory
-        {
-            get
-            {
-                if (_loggerFactory == null)
-                {
-                    _loggerFactory = new LoggerFactory();
-                }
-
-                return _loggerFactory;
-            }
-        }
+        public static ILoggerFactory LoggerFactory { get; set; }
 
         internal static ILogger<T> CreateLogger<T>(this T item)
         {

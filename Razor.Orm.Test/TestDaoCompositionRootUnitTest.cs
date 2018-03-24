@@ -1,26 +1,29 @@
 using LightInject;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Razor.Orm.Test.Dao.TestDao;
 using Razor.Orm.Test.Dto;
+using Razor.Orm.Test.Xunit;
 using System;
 using System.Data.SqlClient;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Razor.Orm.Test
 {
-    [TestClass]
     public class TestDaoCompositionRootUnitTest
     {
-        public TestDaoCompositionRootUnitTest()
+        public TestDaoCompositionRootUnitTest(ITestOutputHelper testOutputHelper)
         {
-            RazorOrmLogger.LoggerFactory.AddConsole().AddDebug();
+            RazorOrmLogger.LoggerFactory = new LoggerFactory().AddTestOutputHelper(testOutputHelper);
             Container = new ServiceContainer();
             Container.RegisterFrom<TestDaoCompositionRoot>();
+            TestOutputHelper = testOutputHelper;
         }
 
         public ServiceContainer Container { get; }
+        public ITestOutputHelper TestOutputHelper { get; }
 
-        [TestMethod]
+        [Fact]
         public void SaveLocationTest()
         {
             using (var connection = Container.GetInstance<SqlConnection>())
@@ -38,11 +41,11 @@ namespace Razor.Orm.Test
                     Availability = 2
                 });
 
-                Console.WriteLine($"Id: {item}");
+                TestOutputHelper.WriteLine($"Id: {item}");
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void UpdatePeopleTest()
         {
             using (var connection = Container.GetInstance<SqlConnection>())
@@ -59,7 +62,7 @@ namespace Razor.Orm.Test
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void CountPeopleTest()
         {
             using (var connection = Container.GetInstance<SqlConnection>())
@@ -74,11 +77,11 @@ namespace Razor.Orm.Test
                     EmailPromotionOptions = new long[] { 0, 1 }
                 });
 
-                Console.WriteLine($"Count: {item}");
+                TestOutputHelper.WriteLine($"Count: {item}");
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void GetSinglePeopleTest()
         {
             using (var connection = Container.GetInstance<SqlConnection>())
@@ -93,11 +96,11 @@ namespace Razor.Orm.Test
                     EmailPromotionOptions = new long[] { 0, 1 }
                 });
 
-                Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
+                TestOutputHelper.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
             }         
         }
 
-        [TestMethod]
+        [Fact]
         public void GetAllPeopleTest()
         {
             using (var connection = Container.GetInstance<SqlConnection>())
@@ -112,7 +115,7 @@ namespace Razor.Orm.Test
                     EmailPromotionOptions = new long[] { 0, 1 }
                 }))
                 {
-                    Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
+                    TestOutputHelper.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
                 }
             }
         }

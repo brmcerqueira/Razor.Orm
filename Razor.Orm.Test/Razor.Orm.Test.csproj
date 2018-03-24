@@ -2,33 +2,36 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="CountPeople.cshtml" />
-    <None Remove="GetAllPeople.cshtml" />
-    <None Remove="GetSinglePeople.cshtml" />
-    <None Remove="SaveLocation.cshtml" />
-    <None Remove="UpdatePeople.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Dao\TestDao\SaveLocation.cshtml" />
-    <EmbeddedResource Include="Dao\TestDao\UpdatePeople.cshtml" />
-    <EmbeddedResource Include="Dao\TestDao\CountPeople.cshtml" />
-    <EmbeddedResource Include="Dao\TestDao\GetSinglePeople.cshtml" />
-    <EmbeddedResource Include="Dao\TestDao\GetAllPeople.cshtml" />
+    <None Remove="Dao\TestDao\CountPeople.cshtml" />
+    <None Remove="Dao\TestDao\GetAllPeople.cshtml" />
+    <None Remove="Dao\TestDao\GetSinglePeople.cshtml" />
+    <None Remove="Dao\TestDao\SaveLocation.cshtml" />
+    <None Remove="Dao\TestDao\UpdatePeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LightInject" Version="5.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="2.0.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Dao\TestDao\CountPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetAllPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetSinglePeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\SaveLocation.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\UpdatePeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
