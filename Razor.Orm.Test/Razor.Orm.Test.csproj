@@ -15,14 +15,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SaveLocation.cshtml" />
-    <EmbeddedResource Include="UpdatePeople.cshtml" />
-    <EmbeddedResource Include="CountPeople.cshtml" />
-    <EmbeddedResource Include="GetSinglePeople.cshtml" />
-    <EmbeddedResource Include="GetAllPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\SaveLocation.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\UpdatePeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\CountPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetSinglePeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetAllPeople.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LightInject" Version="5.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
@@ -31,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LightInject.Razor.Orm\LightInject.Razor.Orm.csproj" />
     <ProjectReference Include="..\Razor.Orm\Razor.Orm.csproj" />
   </ItemGroup>
 

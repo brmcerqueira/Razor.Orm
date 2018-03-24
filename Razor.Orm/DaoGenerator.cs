@@ -102,7 +102,7 @@ namespace Razor.Orm
 
             CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-            .AddReferences(Resolve(DependencyContext.Load(Assembly.GetCallingAssembly())))
+            .AddReferences(Resolve(DependencyContext.Load(assembly)))
             .AddSyntaxTrees(syntaxTrees);
 
             using (var assemblyStream = new MemoryStream())

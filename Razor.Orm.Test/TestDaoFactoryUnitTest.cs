@@ -1,56 +1,18 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Razor.Orm.Test.Dao.TestDao;
+using Razor.Orm.Test.Dto;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 
 namespace Razor.Orm.Test
 {
-    public class PeopleFilterDto
-    {
-        public string LikeFirstName { get; set; }
-        public long[] EmailPromotionOptions { get; set; }
-    }
-
-    public class PeopleDto
-    {
-        public int Id { get; set; }
-        public DateTime Date { get; set; }
-        public string FirstName { get; set; }
-    }
-
-    public class LocationDto
-    {
-        public int? LocationID { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public string Name { get; set; }
-        public decimal CostRate { get; set; }
-        public decimal Availability { get; set; }
-    }
-
-    public interface ITestDao
-    {
-        decimal SaveLocation(LocationDto dto);
-        void UpdatePeople(PeopleFilterDto dto, string title);
-        int CountPeople(PeopleFilterDto dto);
-        PeopleDto GetSinglePeople(PeopleFilterDto dto);
-        IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
-    }
-
-    public class TestDaoFactory : DaoFactory
-    {
-        protected override void Setup()
-        {
-            Define<ITestDao>();
-        }
-    }
-
     [TestClass]
-    public class MainUnitTest
+    public class TestDaoFactoryUnitTest
     {
         private TestDaoFactory testDaoFactory;
 
-        public MainUnitTest()
+        public TestDaoFactoryUnitTest()
         {
             RazorOrmLogger.LoggerFactory.AddConsole().AddDebug();
             testDaoFactory = new TestDaoFactory();

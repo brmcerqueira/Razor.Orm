@@ -1,5 +1,5 @@
 ﻿@using Razor.Orm.Template
-@using Razor.Orm.Test
+@using Razor.Orm.Test.Dto
 @inherits SqlTemplate<Tuple<PeopleFilterDto, string>>
 UPDATE [Person].[Person]
    SET [Title] = @Par(Model.Item2)

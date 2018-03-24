@@ -1,5 +1,5 @@
 ﻿@using Razor.Orm.Template
-@using Razor.Orm.Test
+@using Razor.Orm.Test.Dto
 @inherits SqlTemplate<PeopleFilterDto, PeopleDto>
 SELECT [BusinessEntityID] @As(e => e.Id)
       ,[PersonType]
@@ -19,7 +19,7 @@ SELECT [BusinessEntityID] @As(e => e.Id)
     {
         if (!string.IsNullOrEmpty(Model.LikeFirstName))
         {
-            <text>[FirstName] LIKE @Par($"%{Model.LikeFirstName}%")</text> 
+            <text>[FirstName] LIKE @Par($"%{Model.LikeFirstName}%")</text>
         }
         if (Model.EmailPromotionOptions != null && Model.EmailPromotionOptions.Length > 0)
         {

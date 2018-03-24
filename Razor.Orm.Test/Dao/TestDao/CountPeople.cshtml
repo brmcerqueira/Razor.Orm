@@ -1,19 +1,7 @@
 ﻿@using Razor.Orm.Template
-@using Razor.Orm.Test
-@inherits SqlTemplate<PeopleFilterDto, PeopleDto>
-SELECT TOP 1 [BusinessEntityID] @As(e => e.Id)
-      ,[PersonType]
-      ,[NameStyle]
-      ,[Title]
-      ,[FirstName]
-      ,[MiddleName]
-      ,[LastName]
-      ,[Suffix]
-      ,[EmailPromotion]
-      ,[AdditionalContactInfo]
-      ,[Demographics]
-      ,[rowguid]
-      ,[ModifiedDate] @As(e => e.Date)
+@using Razor.Orm.Test.Dto
+@inherits SqlTemplate<PeopleFilterDto>
+SELECT COUNT(*)
     FROM [Person].[Person]
     @using (var w = SmartWhere())
     {
