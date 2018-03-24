@@ -128,12 +128,7 @@ namespace Razor.Orm.Template
         public SmartWhere SmartWhere()
         {
             return new SmartWhere(sqlWriter);
-        }
-
-        public SmartSet SmartSet()
-        {
-            return new SmartSet(sqlWriter);
-        }  
+        } 
     }
 
     public abstract class SqlTemplate<TModel, TResult> : SqlTemplate<TModel>

@@ -6,10 +6,23 @@ using System.Text;
 
 namespace Razor.Orm
 {
-    internal static class RazorOrmRoot
+    public static class RazorOrmLogger
     {
         private static Hashtable asBinds = new Hashtable();
-        internal static ILoggerFactory LoggerFactory { get; set; }
+        private static ILoggerFactory _loggerFactory = null;
+
+        public static ILoggerFactory LoggerFactory
+        {
+            get
+            {
+                if (_loggerFactory == null)
+                {
+                    _loggerFactory = new LoggerFactory();
+                }
+
+                return _loggerFactory;
+            }
+        }
 
         internal static ILogger<T> CreateLogger<T>(this T item)
         {

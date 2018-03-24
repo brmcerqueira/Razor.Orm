@@ -3,36 +3,29 @@
 @inherits SqlTemplate<LocationDto>
 @if (Model.LocationID.HasValue)
 {
-<text>
-UPDATE [Production].[Location]
-    @using (var s = SmartSet())
-    {
-        if (!string.IsNullOrEmpty(Model.Name))
-        {
-            <text>[Name] = @Par(Model.Name)</text> 
-        }
-        s.End();
-        <text>[CostRate] = @Par(Model.CostRate)
-        ,[Availability] = @Par(Model.Availability)
-        ,[ModifiedDate] = @Par(Model.ModifiedDate)</text>
-    }
- WHERE [LocationID] = @Par(Model.LocationID)
-</text>
+    <text>
+    UPDATE [Production].[Location]
+    SET [Name] = @Par(Model.Name)
+    ,[CostRate] = @Par(Model.CostRate)
+    ,[Availability] = @Par(Model.Availability)
+    ,[ModifiedDate] = @Par(Model.ModifiedDate)
+    WHERE [LocationID] = @Par(Model.LocationID)
+    </text>
 }
 else
 {
-<text>
-INSERT INTO [Production].[Location]
-        ([Name]
-        ,[CostRate]
-        ,[Availability]
-        ,[ModifiedDate])
+    <text>
+    INSERT INTO [Production].[Location]
+    ([Name]
+    ,[CostRate]
+    ,[Availability]
+    ,[ModifiedDate])
     VALUES
-        (@Par(Model.Name)
-        ,@Par(Model.CostRate)
-        ,@Par(Model.Availability)
-        ,@Par(Model.ModifiedDate))
+    (@Par(Model.Name)
+    ,@Par(Model.CostRate)
+    ,@Par(Model.Availability)
+    ,@Par(Model.ModifiedDate))
 
-SELECT SCOPE_IDENTITY()
-</text>
+    SELECT SCOPE_IDENTITY()
+    </text>
 }

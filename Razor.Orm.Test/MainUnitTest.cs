@@ -39,12 +39,6 @@ namespace Razor.Orm.Test
 
     public class TestDaoFactory : DaoFactory
     {
-        public TestDaoFactory()
-            : base(new LoggerFactory().AddConsole().AddDebug())
-        {
-
-        }
-
         protected override void Setup()
         {
             Define<ITestDao>();
@@ -58,6 +52,7 @@ namespace Razor.Orm.Test
 
         public MainUnitTest()
         {
+            RazorOrmLogger.LoggerFactory.AddConsole().AddDebug();
             testDaoFactory = new TestDaoFactory();
         }
 
