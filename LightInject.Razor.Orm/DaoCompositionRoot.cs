@@ -10,23 +10,21 @@ namespace LightInject.Razor.Orm
         private Assembly assembly;
         private IServiceRegistry serviceRegistry;
 
-        public DaoCompositionRoot(Func<IServiceFactory, SqlConnection> createSqlConnection, ILifetime lifetime = null)
+        public DaoCompositionRoot(ILifetime sqlConnectionlifetime = null)
         {
-            assembly = Assembly.GetCallingAssembly();
-            CreateSqlConnection = createSqlConnection;
-            Lifetime = lifetime;
+            assembly = GetType().Assembly;
+            SqlConnectionlifetime = sqlConnectionlifetime;
         }
 
-        private Func<IServiceFactory, SqlConnection> CreateSqlConnection { get; }
-        private ILifetime Lifetime { get; }
+        private ILifetime SqlConnectionlifetime { get; }
 
         public void Compose(IServiceRegistry serviceRegistry)
         {
             this.serviceRegistry = serviceRegistry;
 
-            if (Lifetime != null)
+            if (SqlConnectionlifetime != null)
             {
-                this.serviceRegistry.Register(CreateSqlConnection, Lifetime);
+                this.serviceRegistry.Register(CreateSqlConnection, SqlConnectionlifetime);
             }
             else
             {
@@ -36,6 +34,8 @@ namespace LightInject.Razor.Orm
             this.serviceRegistry.Register(f => Transformers);
             Generate(assembly);
         }
+
+        protected abstract SqlConnection CreateSqlConnection(IServiceFactory serviceFactory);
 
         protected override void GeneratedDao(Type interfaceType, Type generatedType)
         {

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Data.SqlClient;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Razor.Orm
 {
@@ -13,7 +12,7 @@ namespace Razor.Orm
         public DaoFactory()
         {
             hashtable = new Hashtable();
-            Generate(Assembly.GetCallingAssembly());
+            Generate(GetType().Assembly);
         }
 
         public T CreateDao<T>(SqlConnection sqlConnection)

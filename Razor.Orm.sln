@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Orm", "Razor.Orm\Razo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightInject.Razor.Orm", "LightInject.Razor.Orm\LightInject.Razor.Orm.csproj", "{456A0F9D-C7B2-4D8E-AF07-59B416D54461}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Orm.Test", "Razor.Orm.Test\Razor.Orm.Test.csproj", "{7349DA15-92ED-4477-BA98-B6A0765FB988}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Orm.Test", "Razor.Orm.Test\Razor.Orm.Test.csproj", "{7349DA15-92ED-4477-BA98-B6A0765FB988}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
