@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightInject.Razor.Orm", "Li
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Orm.Test", "Razor.Orm.Test\Razor.Orm.Test.csproj", "{7349DA15-92ED-4477-BA98-B6A0765FB988}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Orm.Benchmark", "Razor.Orm.Benchmark\Razor.Orm.Benchmark.csproj", "{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Orm.Example", "Razor.Orm.Example\Razor.Orm.Example.csproj", "{3D9C2E6C-D285-48CF-9578-5FEC98704E30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{7349DA15-92ED-4477-BA98-B6A0765FB988}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7349DA15-92ED-4477-BA98-B6A0765FB988}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7349DA15-92ED-4477-BA98-B6A0765FB988}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D9C2E6C-D285-48CF-9578-5FEC98704E30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D9C2E6C-D285-48CF-9578-5FEC98704E30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D9C2E6C-D285-48CF-9578-5FEC98704E30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D9C2E6C-D285-48CF-9578-5FEC98704E30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

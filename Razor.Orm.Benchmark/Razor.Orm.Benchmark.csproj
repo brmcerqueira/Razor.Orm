@@ -1,33 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Dao\**" />
-    <EmbeddedResource Remove="Dao\**" />
-    <None Remove="Dao\**" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.13" />
     <PackageReference Include="LightInject" Version="5.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="2.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.7.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LightInject.Razor.Orm\LightInject.Razor.Orm.csproj" />
-    <ProjectReference Include="..\Razor.Orm.Example\Razor.Orm.Example.csproj" />
+    <ProjectReference Include="..\Razor.Orm.Example\Razor.Orm.Example.csproj">
+      <Private></Private>
+    </ProjectReference>
     <ProjectReference Include="..\Razor.Orm\Razor.Orm.csproj" />
   </ItemGroup>
 

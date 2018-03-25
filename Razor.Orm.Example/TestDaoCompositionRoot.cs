@@ -1,12 +1,14 @@
 ﻿using LightInject;
 using LightInject.Razor.Orm;
-using Razor.Orm.Test.Dao.TestDao;
+using Razor.Orm.Example.Dao.TestDao;
 using System.Data.SqlClient;
 
-namespace Razor.Orm.Test
+namespace Razor.Orm.Example
 {
     public class TestDaoCompositionRoot : DaoCompositionRoot
     {
+        public static string ConnectionString { get; set; }
+
         public TestDaoCompositionRoot()
             : base(new PerContainerLifetime())
         {
@@ -15,7 +17,7 @@ namespace Razor.Orm.Test
 
         protected override SqlConnection CreateSqlConnection(IServiceFactory serviceFactory)
         {
-            var sqlConnection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True");
+            var sqlConnection = new SqlConnection(ConnectionString);
             sqlConnection.Open();
             return sqlConnection;
         }

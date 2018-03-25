@@ -1,6 +1,6 @@
-﻿using Razor.Orm.Test.Dao.TestDao;
+﻿using Razor.Orm.Example.Dao.TestDao;
 
-namespace Razor.Orm.Test
+namespace Razor.Orm.Example
 {
     public class TestDaoFactory : DaoFactory
     {

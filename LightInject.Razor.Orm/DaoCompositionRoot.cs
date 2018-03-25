@@ -1,18 +1,15 @@
 ﻿using Razor.Orm;
 using System;
 using System.Data.SqlClient;
-using System.Reflection;
 
 namespace LightInject.Razor.Orm
 {
     public abstract class DaoCompositionRoot : DaoGenerator, ICompositionRoot
     {
-        private Assembly assembly;
         private IServiceRegistry serviceRegistry;
 
         public DaoCompositionRoot(ILifetime sqlConnectionlifetime = null)
         {
-            assembly = GetType().Assembly;
             SqlConnectionlifetime = sqlConnectionlifetime;
         }
 
@@ -32,7 +29,7 @@ namespace LightInject.Razor.Orm
             }
 
             this.serviceRegistry.Register(f => Transformers);
-            Generate(assembly);
+            Generate();
         }
 
         protected abstract SqlConnection CreateSqlConnection(IServiceFactory serviceFactory);

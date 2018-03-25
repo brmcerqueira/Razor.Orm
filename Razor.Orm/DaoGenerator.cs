@@ -21,6 +21,7 @@ namespace Razor.Orm
     {
         private ILogger logger;
         private RazorEngine engine;
+        private Assembly assembly;
         private string assemblyName;
         private List<Type> types;
         private List<SyntaxTree> syntaxTrees;
@@ -39,13 +40,14 @@ namespace Razor.Orm
                 builder.Features.Add(new SqlDocumentClassifierPassBase());
             });
 
+            assembly = GetType().Assembly;
             assemblyName = Path.GetRandomFileName();
             types = new List<Type>();
             syntaxTrees = new List<SyntaxTree>();
             Transformers = new Transformers();
         }
 
-        protected void Generate(Assembly assembly)
+        protected void Generate()
         {
             Setup();
 
@@ -99,10 +101,9 @@ namespace Razor.Orm
             var defaultTemplateFactoryCode = stringBuilder.ToString();
 
             Parse(defaultTemplateFactoryCode);
-
             CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-            .AddReferences(Resolve(DependencyContext.Load(assembly)))
+            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))       
+            .AddReferences(Resolve())
             .AddSyntaxTrees(syntaxTrees);
 
             using (var assemblyStream = new MemoryStream())
@@ -359,8 +360,9 @@ namespace Razor.Orm
             }
         }
 
-        private IReadOnlyList<MetadataReference> Resolve(DependencyContext dependencyContext)
+        private IReadOnlyList<MetadataReference> Resolve()
         {
+            var dependencyContext = DependencyContext.Load(Assembly.GetEntryAssembly());
             var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var references = dependencyContext.CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
 
@@ -370,6 +372,8 @@ namespace Razor.Orm
             }
 
             var metadataRerefences = new List<MetadataReference>();
+
+            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(assembly.Location).GetReference());
 
             foreach (var reference in references)
             {
@@ -384,8 +388,6 @@ namespace Razor.Orm
                     }
                 }
             }
-
-            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(Assembly.GetExecutingAssembly().Location).GetReference());
 
             return metadataRerefences;
         }

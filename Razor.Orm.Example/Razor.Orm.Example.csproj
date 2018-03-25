@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Dao\TestDao\CountPeople.cshtml" />
+    <None Remove="Dao\TestDao\GetAllPeople.cshtml" />
+    <None Remove="Dao\TestDao\GetSinglePeople.cshtml" />
+    <None Remove="Dao\TestDao\SaveLocation.cshtml" />
+    <None Remove="Dao\TestDao\UpdatePeople.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Dao\TestDao\CountPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetAllPeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\GetSinglePeople.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\SaveLocation.cshtml" />
+    <EmbeddedResource Include="Dao\TestDao\UpdatePeople.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LightInject" Version="5.1.2" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LightInject.Razor.Orm\LightInject.Razor.Orm.csproj" />
+    <ProjectReference Include="..\Razor.Orm\Razor.Orm.csproj" />
+  </ItemGroup>
+
+</Project>

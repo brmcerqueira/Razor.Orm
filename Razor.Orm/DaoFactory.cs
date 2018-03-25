@@ -12,7 +12,7 @@ namespace Razor.Orm
         public DaoFactory()
         {
             hashtable = new Hashtable();
-            Generate(GetType().Assembly);
+            Generate();
         }
 
         public T CreateDao<T>(SqlConnection sqlConnection)

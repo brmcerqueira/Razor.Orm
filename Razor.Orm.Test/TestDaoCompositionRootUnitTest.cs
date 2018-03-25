@@ -1,7 +1,8 @@
 using LightInject;
 using Microsoft.Extensions.Logging;
-using Razor.Orm.Test.Dao.TestDao;
-using Razor.Orm.Test.Dto;
+using Razor.Orm.Example;
+using Razor.Orm.Example.Dao.TestDao;
+using Razor.Orm.Example.Dto;
 using Razor.Orm.Test.Xunit;
 using System;
 using Xunit;
@@ -15,6 +16,7 @@ namespace Razor.Orm.Test
         {
             RazorOrmLogger.LoggerFactory = new LoggerFactory().AddTestOutputHelper(testOutputHelper);
             Container = new ServiceContainer();
+            TestDaoCompositionRoot.ConnectionString = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True";
             Container.RegisterFrom<TestDaoCompositionRoot>();
             TestOutputHelper = testOutputHelper;
         }

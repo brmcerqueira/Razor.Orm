@@ -1,7 +1,7 @@
-﻿using Razor.Orm.Test.Dto;
+﻿using Razor.Orm.Example.Dto;
 using System.Collections.Generic;
 
-namespace Razor.Orm.Test.Dao.TestDao
+namespace Razor.Orm.Example.Dao.TestDao
 {
     public interface ITestDao
     {

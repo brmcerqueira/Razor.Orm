@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Razor.Orm.Test.Dto
+namespace Razor.Orm.Example.Dto
 {
     public class PeopleDto
     {
