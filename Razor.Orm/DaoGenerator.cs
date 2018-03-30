@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
+using Razor.Orm.I18n;
 using Razor.Orm.Template.Interpreter;
 
 namespace Razor.Orm
@@ -160,7 +161,7 @@ namespace Razor.Orm
 
             if (!type.IsInterface)
             {
-                throw new Exception("O tipo precisa ser uma interface.");
+                throw new Exception(Labels.TypeMustInterfaceException);
             }
 
             types.Add(type);

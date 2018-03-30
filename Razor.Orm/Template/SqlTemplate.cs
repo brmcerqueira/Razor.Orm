@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Dynamic;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Razor.Orm.Template
 {
@@ -133,9 +135,43 @@ namespace Razor.Orm.Template
 
     public abstract class SqlTemplate<TModel, TResult> : SqlTemplate<TModel>
     {
+        private Hashtable asBinds = new Hashtable();
+
         public EscapeString As<T>(Expression<Func<TResult, T>> expression)
         {
-            return new EscapeString(expression.GetAsBind());
+            return new EscapeString(GetAsBind(expression));
+        }
+
+        private string GetAsBind<T>(Expression<Func<TResult, T>> expression)
+        {
+            if (asBinds.ContainsKey(expression))
+            {
+                return (string)asBinds[expression];
+            }
+            else
+            {
+                var stringBuilder = new StringBuilder();
+                Stringify(stringBuilder, expression.Body);
+                stringBuilder.Insert(0, "as '");
+                stringBuilder.Append("'");
+                var result = stringBuilder.ToString();
+                asBinds.Add(expression, result);
+                return result;
+            }
+        }
+
+        private void Stringify(StringBuilder stringBuilder, Expression expression)
+        {
+            if (expression is MemberExpression memberExpression)
+            {
+                stringBuilder.Insert(0, memberExpression.Member.Name);
+
+                if (memberExpression.Expression.NodeType == ExpressionType.MemberAccess)
+                {
+                    stringBuilder.Insert(0, "_");
+                    Stringify(stringBuilder, memberExpression.Expression);
+                }
+            }
         }
     }
 }
