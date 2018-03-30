@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.13" />
-    <PackageReference Include="LightInject" Version="5.1.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Language" Version="2.0.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.7.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.4" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\LightInject.Razor.Orm\LightInject.Razor.Orm.csproj" />
     <ProjectReference Include="..\Razor.Orm.Example\Razor.Orm.Example.csproj">
       <Private></Private>

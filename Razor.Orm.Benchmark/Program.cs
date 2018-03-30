@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using System;
+using System.Reflection;
 
 namespace Razor.Orm.Benchmark
 {
