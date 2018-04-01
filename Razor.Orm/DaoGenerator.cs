@@ -102,10 +102,36 @@ namespace Razor.Orm
             var defaultTemplateFactoryCode = stringBuilder.ToString();
 
             Parse(defaultTemplateFactoryCode);
-            CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))       
-            .AddReferences(Resolve())
-            .AddSyntaxTrees(syntaxTrees);
+
+            var references = DependencyContext.Load(Assembly.GetEntryAssembly()).CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
+
+            if (!references.Any())
+            {
+                throw new Exception("Can't load metadata reference from the entry assembly. Make sure PreserveCompilationContext is set to true in *.csproj file");
+            }
+
+            var metadataRerefences = new List<MetadataReference>();
+
+            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(assembly.Location).GetReference());
+
+            var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var reference in references)
+            {
+                if (libraryPaths.Add(reference))
+                {
+                    using (var stream = File.OpenRead(reference))
+                    {
+                        var moduleMetadata = ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata);
+                        var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
+
+                        metadataRerefences.Add(assemblyMetadata.GetReference(filePath: reference));
+                    }
+                }
+            }
+
+            var compilation = CSharpCompilation.Create(assemblyName).WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))       
+            .AddReferences(metadataRerefences).AddSyntaxTrees(syntaxTrees);
 
             using (var assemblyStream = new MemoryStream())
             {
@@ -276,14 +302,14 @@ namespace Razor.Orm
 
             var stringBuilderTuple = new StringBuilder();
             stringBuilder.Append($"return {method}, {methodIndex}, d => {{ return ");
-            GenerateReturnParse(stringBuilder, stringBuilderTuple, type, null, ref columnIndex);
+            GenerateReturnParse(stringBuilder, stringBuilderTuple, type, new HashSet<Type>(), null, ref columnIndex);
             stringBuilderMap.Append(stringBuilderTuple);
             stringBuilderMap.Append("}");
             stringBuilder.Append("; });");
             methodIndex++;
         }
 
-        private void GenerateReturnParse(StringBuilder stringBuilder, StringBuilder stringBuilderTuple, Type type, string path, ref int columnIndex)
+        private void GenerateReturnParse(StringBuilder stringBuilder, StringBuilder stringBuilderTuple, Type type, HashSet<Type> mappedTypes, string path, ref int columnIndex)
         {
             switch (Classifier(type))
             {
@@ -304,6 +330,11 @@ namespace Razor.Orm
                     columnIndex++;
                     break;
                 case TypeClassifier.Object:
+                    if (!mappedTypes.Add(type))
+                    {
+                        throw new Exception(string.Format(Labels.CyclicReferenceException, string.Join(" -> ", mappedTypes.Select(e => e.FullName))));
+                    }
+
                     stringBuilder.Append($" new {FullNameForCode(type)} () {{ ");
 
                     var properties = type.GetProperties();
@@ -312,7 +343,7 @@ namespace Razor.Orm
                     {
                         var property = properties[i];
                         stringBuilder.Append($"{property.Name} = ");
-                        GenerateReturnParse(stringBuilder, stringBuilderTuple, property.PropertyType, 
+                        GenerateReturnParse(stringBuilder, stringBuilderTuple, property.PropertyType, mappedTypes,
                             path != null ? $"{path}_{property.Name}" : property.Name, ref columnIndex);
                         if (i < properties.Length - 1)
                         {
@@ -359,38 +390,6 @@ namespace Razor.Orm
             {
                 return $"global::{type.FullName}";
             }
-        }
-
-        private IReadOnlyList<MetadataReference> Resolve()
-        {
-            var dependencyContext = DependencyContext.Load(Assembly.GetEntryAssembly());
-            var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var references = dependencyContext.CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
-
-            if (!references.Any())
-            {
-                throw new Exception("Can't load metadata reference from the entry assembly. Make sure PreserveCompilationContext is set to true in *.csproj file");
-            }
-
-            var metadataRerefences = new List<MetadataReference>();
-
-            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(assembly.Location).GetReference());
-
-            foreach (var reference in references)
-            {
-                if (libraryPaths.Add(reference))
-                {
-                    using (var stream = File.OpenRead(reference))
-                    {
-                        var moduleMetadata = ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata);
-                        var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
-
-                        metadataRerefences.Add(assemblyMetadata.GetReference(filePath: reference));
-                    }
-                }
-            }
-
-            return metadataRerefences;
         }
     }
 }

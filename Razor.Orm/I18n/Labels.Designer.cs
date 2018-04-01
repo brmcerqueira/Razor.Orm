@@ -61,6 +61,15 @@ namespace Razor.Orm.I18n {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Cycle reference: {0}.
+        /// </summary>
+        internal static string CyclicReferenceException {
+            get {
+                return ResourceManager.GetString("CyclicReferenceException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a The type must be an interface..
         /// </summary>
         internal static string TypeMustInterfaceException {
