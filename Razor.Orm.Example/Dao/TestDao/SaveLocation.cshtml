@@ -5,10 +5,17 @@
 {
     <text>
     UPDATE [Production].[Location]
-    SET [Name] = @Par(Model.Name)
-    ,[CostRate] = @Par(Model.CostRate)
-    ,[Availability] = @Par(Model.Availability)
-    ,[ModifiedDate] = @Par(Model.ModifiedDate)
+    @using (Smart.Set)
+    {
+        if (!string.IsNullOrEmpty(Model.Name))
+        {
+            <text>[Name] = @Par(Model.Name)</text>
+        }
+        Smart.Comma();
+        <text>[CostRate] = @Par(Model.CostRate)
+        ,[Availability] = @Par(Model.Availability)
+        ,[ModifiedDate] = @Par(Model.ModifiedDate)</text>
+    }
     WHERE [LocationID] = @Par(Model.LocationID)
     </text>
 }

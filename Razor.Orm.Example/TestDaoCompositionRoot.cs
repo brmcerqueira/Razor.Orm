@@ -9,18 +9,14 @@ namespace Razor.Orm.Example
     {
         public static string ConnectionString { get; set; }
 
-        public TestDaoCompositionRoot()
-            : base(new PerContainerLifetime())
-        {
-
-        }
-
         protected override SqlConnection CreateSqlConnection(IServiceFactory serviceFactory)
         {
             var sqlConnection = new SqlConnection(ConnectionString);
             sqlConnection.Open();
             return sqlConnection;
         }
+
+        protected override ILifetime SqlConnectionLifetime => new PerContainerLifetime();
 
         protected override void Setup()
         {

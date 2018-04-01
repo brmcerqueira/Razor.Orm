@@ -117,8 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CantLoadMetadataReferenceException" xml:space="preserve">
+    <value>Não é possível carregar a referência de metadados do assembly de entrada. Certifique-se de que PreserveCompilationContext esteja definido como true no arquivo * .csproj</value>
+  </data>
+  <data name="CompileException" xml:space="preserve">
+    <value>Falha ao compilar o Razor template:</value>
+  </data>
   <data name="CyclicReferenceException" xml:space="preserve">
     <value>Referência ciclica: {0}</value>
+  </data>
+  <data name="EmptySetException" xml:space="preserve">
+    <value>Conjunto vazio.</value>
+  </data>
+  <data name="TypeCantClassifyException" xml:space="preserve">
+    <value>O tipo {0} não pode ser classificado.</value>
   </data>
   <data name="TypeMustInterfaceException" xml:space="preserve">
     <value>O tipo precisa ser uma interface.</value>

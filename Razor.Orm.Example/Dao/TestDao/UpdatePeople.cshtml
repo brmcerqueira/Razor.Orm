@@ -3,7 +3,7 @@
 @inherits SqlTemplate<Tuple<PeopleFilterDto, string>>
 UPDATE [Person].[Person]
    SET [Title] = @Par(Model.Item2)
-@using (var w = SmartWhere())
+@using (Smart.Where)
 {
     if (!string.IsNullOrEmpty(Model.Item1.LikeFirstName))
     {
@@ -11,7 +11,7 @@ UPDATE [Person].[Person]
     }
     if (Model.Item1.EmailPromotionOptions != null && Model.Item1.EmailPromotionOptions.Length > 0)
     {
-        w.And();
+        Smart.And();
         <text>[EmailPromotion] @In(Model.Item1.EmailPromotionOptions)</text>
     }
 }

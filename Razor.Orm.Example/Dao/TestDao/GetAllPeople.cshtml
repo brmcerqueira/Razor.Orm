@@ -15,7 +15,7 @@ SELECT [BusinessEntityID] @As(e => e.Id)
       ,[rowguid]
       ,[ModifiedDate] @As(e => e.Date)
     FROM [Person].[Person]
-    @using (var w = SmartWhere())
+    @using (Smart.Where)
     {
         if (!string.IsNullOrEmpty(Model.LikeFirstName))
         {
@@ -23,7 +23,7 @@ SELECT [BusinessEntityID] @As(e => e.Id)
         }
         if (Model.EmailPromotionOptions != null && Model.EmailPromotionOptions.Length > 0)
         {
-            w.And();
+            Smart.And();
             <text>[EmailPromotion] @In(Model.EmailPromotionOptions)</text>
         }
     }

@@ -17,6 +17,7 @@ namespace Razor.Orm.Template
         protected TModel Model { get; private set; }
         private ILogger logger;
         private SqlWriter sqlWriter;
+
         private int parametersIndex;
         private IList<SqlParameter> parameters;
 
@@ -25,9 +26,12 @@ namespace Razor.Orm.Template
             logger = this.CreateLogger();
         }
 
+        public SmartBuilder Smart { get; private set; }
+
         public SqlTemplateResult Process(object model)
         {
             sqlWriter = new SqlWriter();
+            Smart = new SmartBuilder(sqlWriter);
             parametersIndex = 0;
             parameters = new List<SqlParameter>();
 
@@ -126,11 +130,6 @@ namespace Razor.Orm.Template
         {
             return new EscapeString($"in ({string.Join(',', values)})");
         }
-
-        public SmartWhere SmartWhere()
-        {
-            return new SmartWhere(sqlWriter);
-        } 
     }
 
     public abstract class SqlTemplate<TModel, TResult> : SqlTemplate<TModel>

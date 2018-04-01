@@ -61,11 +61,47 @@ namespace Razor.Orm.I18n {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Can&apos;t load metadata reference from the entry assembly. Make sure PreserveCompilationContext is set to true in *.csproj file.
+        /// </summary>
+        internal static string CantLoadMetadataReferenceException {
+            get {
+                return ResourceManager.GetString("CantLoadMetadataReferenceException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Failed to compile generated Razor template:.
+        /// </summary>
+        internal static string CompileException {
+            get {
+                return ResourceManager.GetString("CompileException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a Cycle reference: {0}.
         /// </summary>
         internal static string CyclicReferenceException {
             get {
                 return ResourceManager.GetString("CyclicReferenceException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Empty set..
+        /// </summary>
+        internal static string EmptySetException {
+            get {
+                return ResourceManager.GetString("EmptySetException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a Type {0} can not be classify..
+        /// </summary>
+        internal static string TypeCantClassifyException {
+            get {
+                return ResourceManager.GetString("TypeCantClassifyException", resourceCulture);
             }
         }
         

@@ -7,9 +7,9 @@
     <PackageProjectUrl>https://github.com/brmcerqueira/Razor.Orm</PackageProjectUrl>
     <Description>ORM baseado no Razor</Description>
     <NeutralLanguage></NeutralLanguage>
-    <AssemblyVersion>1.0.0.4</AssemblyVersion>
-    <FileVersion>1.0.0.4</FileVersion>
-    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-namespace Razor.Orm.Template.Interpreter
+namespace Razor.Orm.Template
 {
     public class SqlDocumentClassifierPassBase : DocumentClassifierPassBase
     {

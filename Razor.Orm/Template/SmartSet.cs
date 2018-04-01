@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Razor.Orm.I18n;
+using System;
 
 namespace Razor.Orm.Template
 {
-    public class SmartWhere : IDisposable
+    public class SmartSet : IDisposable
     {
-        internal SmartWhere(SqlWriter sqlWriter)
+        internal SmartSet(SqlWriter sqlWriter)
         {
             sqlWriter.CreateContext();
             SqlWriter = sqlWriter;
@@ -16,12 +17,12 @@ namespace Razor.Orm.Template
         {
             if (SqlWriter.CurrentLength > 0)
             {
-                SqlWriter.WriteInit(" WHERE ");
+                SqlWriter.WriteInit(" SET ");
                 SqlWriter.ConsolidateContext();
             }
             else
             {
-                SqlWriter.DiscardContext();
+                throw new Exception(Labels.EmptySetException);
             }
         }
     }

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
 using Razor.Orm.I18n;
-using Razor.Orm.Template.Interpreter;
+using Razor.Orm.Template;
 
 namespace Razor.Orm
 {
@@ -34,7 +34,6 @@ namespace Razor.Orm
 
             engine = RazorEngine.Create(builder =>
             {
-                SqlModelDirective.Register(builder);
                 FunctionsDirective.Register(builder);
                 InheritsDirective.Register(builder);
                 SectionDirective.Register(builder);
@@ -107,12 +106,13 @@ namespace Razor.Orm
 
             if (!references.Any())
             {
-                throw new Exception("Can't load metadata reference from the entry assembly. Make sure PreserveCompilationContext is set to true in *.csproj file");
+                throw new Exception(Labels.CantLoadMetadataReferenceException);
             }
 
-            var metadataRerefences = new List<MetadataReference>();
-
-            metadataRerefences.Add(AssemblyMetadata.CreateFromFile(assembly.Location).GetReference());
+            var metadataRerefences = new List<MetadataReference>
+            {
+                AssemblyMetadata.CreateFromFile(assembly.Location).GetReference()
+            };
 
             var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -122,16 +122,15 @@ namespace Razor.Orm
                 {
                     using (var stream = File.OpenRead(reference))
                     {
-                        var moduleMetadata = ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata);
-                        var assemblyMetadata = AssemblyMetadata.Create(moduleMetadata);
-
-                        metadataRerefences.Add(assemblyMetadata.GetReference(filePath: reference));
+                        metadataRerefences.Add(AssemblyMetadata.Create(ModuleMetadata.CreateFromStream(stream, PEStreamOptions.PrefetchMetadata))
+                            .GetReference(filePath: reference));
                     }
                 }
             }
 
-            var compilation = CSharpCompilation.Create(assemblyName).WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))       
-            .AddReferences(metadataRerefences).AddSyntaxTrees(syntaxTrees);
+            var compilation = CSharpCompilation.Create(assemblyName)
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))       
+                .AddReferences(metadataRerefences).AddSyntaxTrees(syntaxTrees);
 
             using (var assemblyStream = new MemoryStream())
             {
@@ -139,31 +138,17 @@ namespace Razor.Orm
 
                 if (!result.Success)
                 {
-                    List<Diagnostic> errorsDiagnostics = result.Diagnostics
-                            .Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error)
-                            .ToList();
+                    var diagnostics = new StringBuilder();
 
-                    StringBuilder builder = new StringBuilder();
-                    builder.AppendLine("Failed to compile generated Razor template:");
+                    diagnostics.AppendLine(Labels.CompileException);
 
-                    var errorMessages = new List<string>();
-                    foreach (Diagnostic diagnostic in errorsDiagnostics)
+                    foreach (var diagnostic in result.Diagnostics.Where(d => d.IsWarningAsError || d.Severity == DiagnosticSeverity.Error))
                     {
-                        FileLinePositionSpan lineSpan = diagnostic.Location.SourceTree.GetMappedLineSpan(diagnostic.Location.SourceSpan);
-                        string errorMessage = diagnostic.GetMessage();
-                        string formattedMessage = $"- ({lineSpan.StartLinePosition.Line}:{lineSpan.StartLinePosition.Character}) {errorMessage}";
-
-                        errorMessages.Add(formattedMessage);
-                        builder.AppendLine(formattedMessage);
+                        var lineSpan = diagnostic.Location.SourceTree.GetMappedLineSpan(diagnostic.Location.SourceSpan);
+                        diagnostics.AppendLine($"- ({lineSpan.StartLinePosition.Line}:{lineSpan.StartLinePosition.Character}) {diagnostic.GetMessage()}");
                     }
 
-                    builder.AppendLine("\nSee CompilationErrors for detailed information");
-
-                    if (logger != null)
-                    {
-                        logger.LogInformation(builder.ToString());
-                        logger.LogInformation(string.Join('\n', errorMessages));
-                    }
+                    throw new Exception(diagnostics.ToString());
                 }
 
                 assemblyStream.Seek(0, SeekOrigin.Begin);
@@ -376,7 +361,7 @@ namespace Razor.Orm
             }
             else
             {
-                throw new Exception($"O tipo {FullNameForCode(type)} não pode ser classificado.");
+                throw new Exception(string.Format(Labels.TypeCantClassifyException, FullNameForCode(type)));
             }
         }
 
