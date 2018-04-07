@@ -10,11 +10,16 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 [LightInject.Razor.Orm NuGet library](https://www.nuget.org/packages/LightInject.Razor.Orm)
 
 # Guia
+- [Motivação](#motivação)
 - [Primeiros passos](#primeiros-passos)
+
+# Motivação
+
+A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der o poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
 
 # Primeiros passos
 
-Para começar é necessário montar uma estrutura de camada de persistência, precisamos criar classes Dto(classes POCO) que serão responsáveis pelo tráfego de dados
+Para começar é necessário montar uma estrutura de camada de persistência, precisamos criar classes Dto(classes POCO) que serão responsáveis pelo tráfego de dados.
 
 ```csharp
 namespace MyProject
@@ -34,7 +39,7 @@ namespace MyProject
 }
 ```
 
-Em seguida devemos criar uma interface que contenha o layout que será implementado pelo Razor.Orm para aquele determinado Dao
+Em seguida devemos criar uma interface que contenha o layout que será implementado pelo Razor.Orm para aquele determinado Dao.
 
 ```csharp
 namespace MyProject
@@ -46,7 +51,7 @@ namespace MyProject
 }
 ```
 
-Agora criaremos um arquivo 'cshtml' para cada método que foi definido na interface anteriormente, é necessário que esses arquivos tenham exatamente o mesmo nome do método correlacionado, fiquem no mesmo diretório onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'
+Agora criaremos um arquivo 'cshtml' para cada método que foi definido na interface anteriormente, é necessário que esses arquivos tenham exatamente o mesmo nome do método correlacionado, fiquem no mesmo diretório onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'.
 
 ```cshtml
 @using Razor.Orm.Template
@@ -70,7 +75,7 @@ SELECT [BusinessEntityID] @As(e => e.Id)
     }
 ```
 
-O diretório deve ter a seguinte estrutura
+O diretório deve ter a seguinte estrutura.
 
 ```
 PeopleDao
@@ -78,7 +83,7 @@ PeopleDao
 └── GetAllPeople.cshtml
 ```
 
-Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos
+Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos.
 
 ```csharp
 namespace MyProject
@@ -93,16 +98,16 @@ namespace MyProject
 }
 ```
 
-Antes de rodar projeto devemos ajustar 'PreserveCompilationContext' para 'true' dentro do arquivo *.csproj no agrupamento 'PropertyGroup'
+Antes de rodar projeto devemos ajustar 'PreserveCompilationContext' para 'true' dentro do arquivo *.csproj no agrupamento 'PropertyGroup'.
 
-````XML
+```xml
 <PropertyGroup>
     ...
     <PreserveCompilationContext>true</PreserveCompilationContext>
 </PropertyGroup>
-````
+```
 
-Agora está tudo pronto para rodar
+Agora está tudo pronto para rodar.
 
 ```csharp
 namespace MyProject
@@ -133,7 +138,7 @@ namespace MyProject
 }
 ```
 
-A busca realizada vai ser essa onde '@p0' é igual '%Ken%'
+A busca realizada vai ser essa onde '@p0' é igual '%Ken%'.
 
 ```sql
 SELECT [BusinessEntityID] as 'Id'
@@ -143,9 +148,9 @@ SELECT [BusinessEntityID] as 'Id'
  WHERE [FirstName] LIKE @p0 AND [EmailPromotion] in (0,1)
 ```
 
-E a saída no console vai ser essa
+E a saída no console vai ser essa.
 
-```txt
+```
 Id: 10300, Date: 27/12/2013 00:00:00, FirstName: Mackenzie
 Id: 15145, Date: 05/08/2012 00:00:00, FirstName: Kendra
 Id: 15137, Date: 22/04/2013 00:00:00, FirstName: Kendra
