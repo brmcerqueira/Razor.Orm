@@ -82,6 +82,9 @@ namespace MyProject
     }
 }
 ```
+
+Agora está tudo pronto pra rodar o projeto
+
 ```csharp
 namespace MyProject
 {
@@ -109,4 +112,28 @@ namespace MyProject
         }
     }
 }
+```
+
+A busca realizada vai ser essa
+
+```sql
+SELECT [BusinessEntityID] as 'Id'
+      ,[FirstName]
+      ,[ModifiedDate] as 'Date'
+    FROM [Person].[Person]
+ WHERE [FirstName] LIKE @p0 AND [EmailPromotion] in (0,1)
+```
+
+onde '@p0' é igual '%Ken%' e a saída no console vai ser essa
+
+```txt
+Id: 10300, Date: 27/12/2013 00:00:00, FirstName: Mackenzie
+Id: 15145, Date: 05/08/2012 00:00:00, FirstName: Kendra
+Id: 15137, Date: 22/04/2013 00:00:00, FirstName: Kendra
+Id: 2618, Date: 28/11/2013 00:00:00, FirstName: Kenneth
+Id: 8832, Date: 01/03/2014 00:00:00, FirstName: Mackenzie
+Id: 10361, Date: 14/07/2013 00:00:00, FirstName: Mackenzie
+Id: 2625, Date: 27/03/2014 00:00:00, FirstName: Kenneth
+Id: 15163, Date: 13/11/2013 00:00:00, FirstName: Kendra
+...
 ```
