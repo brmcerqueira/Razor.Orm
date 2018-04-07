@@ -1,7 +1,7 @@
 Razor.Orm - Um micro ORM baseado no Razor
 ========================================
 
-O Razor.Orm tem o seu pacote Nuget, para isso você deve baixar e instalar acessando o link abaixo: 
+Para baixar e instalar você deve acessar o link abaixo:
 
 [Razor.Orm NuGet library](https://www.nuget.org/packages/Razor.Orm)
 
