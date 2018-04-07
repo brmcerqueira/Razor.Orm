@@ -40,7 +40,7 @@ Em seguida devemos criar uma interface que contenha o layout que será implementa
 
 Agora criaremos um arquivo 'cshtml' para cada metodo que foi definido na interface anteriormente, é necessario que esses arquivos fiquem no mesmo diretorio onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'
 
-```csharp
+```cshtml
 @using Razor.Orm.Template
 @using Razor.Orm.Example.Dto
 @inherits SqlTemplate<PeopleFilterDto, PeopleDto>
