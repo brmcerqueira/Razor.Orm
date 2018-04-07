@@ -1,23 +1,10 @@
-# Razor.Orm
+Razor.Orm - Um micro ORM baseado no Razor
+========================================
 
-ORM baseado no Razor
+O Razor.Orm tem o seu pacote Nuget, para isso você deve baixar e instalar acessando o link abaixo: 
 
-# Nuget
+[Razor.Orm NuGet library](https://www.nuget.org/packages/Razor.Orm)
 
-Install-Package Razor.Orm -Version 1.1.0
+Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot onde você pode baixar e instalar acessando o link abaixo:
 
-# .Net CLI
-
-dotnet add package Razor.Orm --version 1.1.0
-
-# LightInject.Razor.Orm
-
-CompositionRoot do LightInject para criação dos Daos do Razor.Orm
-
-# Nuget
-
-Install-Package LightInject.Razor.Orm -Version 1.1.0
-
-# .Net CLI
-
-dotnet add package LightInject.Razor.Orm --version 1.1.0
+[LightInject.Razor.Orm NuGet library](https://www.nuget.org/packages/LightInject.Razor.Orm)

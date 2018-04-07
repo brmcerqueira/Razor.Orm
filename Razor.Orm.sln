@@ -11,7 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Orm.Test", "Razor.Orm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Orm.Benchmark", "Razor.Orm.Benchmark\Razor.Orm.Benchmark.csproj", "{43A4B12B-ECFE-4974-99A7-4D0ED31B8A15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Razor.Orm.Example", "Razor.Orm.Example\Razor.Orm.Example.csproj", "{3D9C2E6C-D285-48CF-9578-5FEC98704E30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Razor.Orm.Example", "Razor.Orm.Example\Razor.Orm.Example.csproj", "{3D9C2E6C-D285-48CF-9578-5FEC98704E30}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{88A841D0-2F80-45FC-8EA1-35422C56DB4E}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
