@@ -15,7 +15,7 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 
 # Motivação
 
-A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der o poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
+A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
 
 # Primeiros passos
 
