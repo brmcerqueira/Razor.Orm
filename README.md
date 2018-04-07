@@ -35,9 +35,12 @@ namespace MyProject
 Em seguida devemos criar uma interface que contenha o layout que será implementado pelo Razor.Orm para aquele determinado Dao
 
 ```csharp
-public interface IPeopleDao
+namespace MyProject
 {
-    IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
+	public interface IPeopleDao
+	{
+		IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
+	}
 }
 ```
 
@@ -68,11 +71,14 @@ SELECT [BusinessEntityID] @As(e => e.Id)
 Nesse momento é necessario extender a classe DaoFactory criando sua propia fabrica de Daos
 
 ```csharp
-public class MyDaoFactory : DaoFactory
+namespace MyProject
 {
-    protected override void Setup()
-    {
-        Define<IPeopleDao>();
-    }
+	public class MyDaoFactory : DaoFactory
+	{
+		protected override void Setup()
+		{
+			Define<IPeopleDao>();
+		}
+	}
 }
 ```
