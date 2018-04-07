@@ -97,7 +97,7 @@ Para o projeto funcionar corretament devemos ajustar 'PreserveCompilationContext
 
 ## Usando o DaoFactory
 
-Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos.
+Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos, apos isso é só executar.
 
 ```csharp
 namespace MyProject
@@ -109,14 +109,7 @@ namespace MyProject
             Define<IPeopleDao>();
         }
     }
-}
-```
 
-Agora está tudo pronto para rodar.
-
-```csharp
-namespace MyProject
-{
     public class Program
     {
         public static void Main(string[] args)
@@ -164,12 +157,7 @@ namespace MyProject
             Define<IPeopleDao>();
         }
     }
-}
-```
 
-```csharp
-namespace MyProject
-{
     public class Program
     {
         public static void Main(string[] args)
