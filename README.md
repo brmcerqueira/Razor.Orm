@@ -85,6 +85,15 @@ namespace MyProject
 }
 ```
 
+Antes de rodar projeto devemos ajustar 'PreserveCompilationContext' para 'true' dentro do arquivo *.csproj no agrupamento 'PropertyGroup'
+
+````XML
+<PropertyGroup>
+    ...
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+</PropertyGroup>
+````
+
 Agora está tudo pronto pra rodar o projeto
 
 ```csharp
