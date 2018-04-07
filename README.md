@@ -14,7 +14,7 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 
 # Primeiros passos
 
-Para comerçar é necessario montar uma estrutura de camada de persistencia, precisamos criar classes Dto(classes POCO) que serão responsaveis pelo trafego de dados. 
+Para começar é necessário montar uma estrutura de camada de persistência, precisamos criar classes Dto(classes POCO) que serão responsáveis pelo tráfego de dados.
 
 ```csharp
 namespace MyProject
@@ -46,7 +46,7 @@ namespace MyProject
 }
 ```
 
-Agora criaremos um arquivo 'cshtml' para cada metodo que foi definido na interface anteriormente, é necessario que esses arquivos fiquem no mesmo diretorio onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'
+Agora criaremos um arquivo 'cshtml' para cada método que foi definido na interface anteriormente, é necessário que esses arquivos fiquem no mesmo diretório onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'
 
 ```cshtml
 @using Razor.Orm.Template
@@ -70,7 +70,7 @@ SELECT [BusinessEntityID] @As(e => e.Id)
     }
 ```
 
-Nesse momento é necessario extender a classe DaoFactory criando sua propia fabrica de Daos
+Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos
 
 ```csharp
 namespace MyProject
@@ -94,7 +94,7 @@ Antes de rodar projeto devemos ajustar 'PreserveCompilationContext' para 'true' 
 </PropertyGroup>
 ````
 
-Agora está tudo pronto pra rodar o projeto
+Agora está tudo pronto para rodar
 
 ```csharp
 namespace MyProject
