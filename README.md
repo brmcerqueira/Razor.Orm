@@ -145,6 +145,54 @@ namespace MyProject
 
 ## Usando o DaoCompositionRoot
 
+```csharp
+namespace MyProject
+{
+    public class MyDaoCompositionRoot : DaoCompositionRoot
+    {
+        protected override SqlConnection CreateSqlConnection(IServiceFactory serviceFactory)
+        {
+            var sqlConnection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True");
+            sqlConnection.Open();
+            return sqlConnection;
+        }
+
+        protected override ILifetime SqlConnectionLifetime => new PerContainerLifetime();
+
+        protected override void Setup()
+        {
+            Define<IPeopleDao>();
+        }
+    }
+}
+```
+
+```csharp
+namespace MyProject
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var container = new ServiceContainer();
+
+            container.RegisterFrom<MyDaoCompositionRoot>();
+
+            var dao = container.GetInstance<IPeopleDao>();
+
+            foreach (var item in dao.GetAllPeople(new PeopleFilterDto()
+            {
+                LikeFirstName = "Ken",
+                EmailPromotionOptions = new long[] { 0, 1 }
+            }))
+            {
+                Console.WriteLine($"Id: {item.Id}, Date: {item.Date}, FirstName: {item.FirstName}");
+            }
+        }
+    }
+}
+```
+
 ## Resultado da execução
 
 A busca realizada vai ser essa onde '@p0' é igual '%Ken%'.
