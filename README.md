@@ -1,24 +1,17 @@
 Razor.Orm - Um micro ORM baseado no Razor
 ========================================
 
+A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
+
 Para baixar e instalar você deve acessar o link abaixo:
 
 [Razor.Orm NuGet library](https://www.nuget.org/packages/Razor.Orm)
 
-Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot onde você pode baixar e instalar acessando o link abaixo:
-
-[LightInject.Razor.Orm NuGet library](https://www.nuget.org/packages/LightInject.Razor.Orm)
-
 # Guia
-- [Motivação](#motivação)
 - [Primeiros passos](#primeiros-passos)
   * [Usando o DaoFactory](#usando-o-daofactory)
   * [Usando o DaoCompositionRoot](#usando-o-daocompositionroot)
   * [Resultado da execução](#resultado-da-execução)
-  
-# Motivação
-
-A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
 
 # Primeiros passos
 
@@ -137,6 +130,14 @@ namespace MyProject
 ```
 
 ## Usando o DaoCompositionRoot
+
+Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot onde você pode baixar e instalar acessando o link abaixo:
+
+[LightInject.Razor.Orm NuGet library](https://www.nuget.org/packages/LightInject.Razor.Orm)
+
+Em seguida é necessário estender a classe DaoCompositionRoot criando um CompositionRoot que será registrado em um ServiceContainer, para mais detalhes visitar a documentação do [LightInject](https://www.lightinject.net/).
+
+Depois é só executar.
 
 ```csharp
 namespace MyProject
