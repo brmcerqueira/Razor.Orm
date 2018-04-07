@@ -13,7 +13,6 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 - [Primeiros passos](#primeiros-passos)
 
 # Primeiros passos
-========================================
 
 Para comerçar é necessario montar uma estrutura de camada de persistencia, precisamos criar classes Dto(classes POCO) que serão responsaveis pelo trafego de dados. 
 
