@@ -9,7 +9,10 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 
 [LightInject.Razor.Orm NuGet library](https://www.nuget.org/packages/LightInject.Razor.Orm)
 
-Primeiros passos
+# Guia
+- [Primeiros passos](#primeiros-passos)
+
+# Primeiros passos
 ========================================
 
 Para comerçar é necessario montar uma estrutura de camada de persistencia, precisamos criar classes Dto(classes POCO) que serão responsaveis pelo trafego de dados. 
@@ -114,7 +117,7 @@ namespace MyProject
 }
 ```
 
-A busca realizada vai ser essa
+A busca realizada vai ser essa onde '@p0' é igual '%Ken%'
 
 ```sql
 SELECT [BusinessEntityID] as 'Id'
@@ -124,7 +127,7 @@ SELECT [BusinessEntityID] as 'Id'
  WHERE [FirstName] LIKE @p0 AND [EmailPromotion] in (0,1)
 ```
 
-onde '@p0' é igual '%Ken%' e a saída no console vai ser essa
+E a saída no console vai ser essa
 
 ```txt
 Id: 10300, Date: 27/12/2013 00:00:00, FirstName: Mackenzie
