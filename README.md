@@ -15,6 +15,8 @@ Primeiros passos
 Para comerçar é necessario montar uma estrutura de camada de persistencia, precisamos criar classes Dto(classes POCO) que serão responsaveis pelo trafego de dados. 
 
 ```csharp
+namespace MyProject
+{
     public class PeopleFilterDto
     {
         public string LikeFirstName { get; set; }
@@ -27,22 +29,23 @@ Para comerçar é necessario montar uma estrutura de camada de persistencia, preci
         public DateTime Date { get; set; }
         public string FirstName { get; set; }
     }
+}
 ```
 
 Em seguida devemos criar uma interface que contenha o layout que será implementado pelo Razor.Orm para aquele determinado Dao
 
 ```csharp
-    public interface IPeopleDao
-    {
-        IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
-    }
+public interface IPeopleDao
+{
+    IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
+}
 ```
 
 Agora criaremos um arquivo 'cshtml' para cada metodo que foi definido na interface anteriormente, é necessario que esses arquivos fiquem no mesmo diretorio onde está a interface e que a 'Ação de Compilação' seja ajustada para opção 'Recurso inserido'
 
 ```cshtml
 @using Razor.Orm.Template
-@using Razor.Orm.Example.Dto
+@using MyProject
 @inherits SqlTemplate<PeopleFilterDto, PeopleDto>
 SELECT [BusinessEntityID] @As(e => e.Id)
       ,[FirstName]
@@ -65,11 +68,11 @@ SELECT [BusinessEntityID] @As(e => e.Id)
 Nesse momento é necessario extender a classe DaoFactory criando sua propia fabrica de Daos
 
 ```csharp
-    public class MyDaoFactory : DaoFactory
+public class MyDaoFactory : DaoFactory
+{
+    protected override void Setup()
     {
-        protected override void Setup()
-        {
-            Define<IPeopleDao>();
-        }
+        Define<IPeopleDao>();
     }
+}
 ```
