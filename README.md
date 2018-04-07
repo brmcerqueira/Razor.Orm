@@ -37,10 +37,10 @@ Em seguida devemos criar uma interface que contenha o layout que será implementa
 ```csharp
 namespace MyProject
 {
-public interface IPeopleDao
-{
-	IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
-}
+	public interface IPeopleDao
+	{
+		IEnumerable<PeopleDto> GetAllPeople(PeopleFilterDto dto);
+	}
 }
 ```
 
@@ -73,12 +73,12 @@ Nesse momento é necessario extender a classe DaoFactory criando sua propia fabri
 ```csharp
 namespace MyProject
 {
-public class MyDaoFactory : DaoFactory
-{
-protected override void Setup()
-{
-	Define<IPeopleDao>();
-}
-}
+	public class MyDaoFactory : DaoFactory
+	{
+		protected override void Setup()
+		{
+			Define<IPeopleDao>();
+		}
+	}
 }
 ```
