@@ -12,7 +12,10 @@ Para uma melhor integração com o LightInject foi feito o DaoCompositionRoot on
 # Guia
 - [Motivação](#motivação)
 - [Primeiros passos](#primeiros-passos)
-
+  * [Usando o DaoFactory](#usando-o-daofactory)
+  * [Usando o DaoCompositionRoot](#usando-o-daocompositionroot)
+  * [Resultado da execução](#resultado-da-execução)
+  
 # Motivação
 
 A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
@@ -83,6 +86,17 @@ PeopleDao
 └── GetAllPeople.cshtml
 ```
 
+Para o projeto funcionar corretament devemos ajustar 'PreserveCompilationContext' para 'true' dentro do arquivo *.csproj no agrupamento 'PropertyGroup'.
+
+```xml
+<PropertyGroup>
+    ...
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+</PropertyGroup>
+```
+
+## Usando o DaoFactory
+
 Nesse momento é necessário estender a classe DaoFactory criando sua própria fábrica de Daos.
 
 ```csharp
@@ -96,15 +110,6 @@ namespace MyProject
         }
     }
 }
-```
-
-Antes de rodar projeto devemos ajustar 'PreserveCompilationContext' para 'true' dentro do arquivo *.csproj no agrupamento 'PropertyGroup'.
-
-```xml
-<PropertyGroup>
-    ...
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-</PropertyGroup>
 ```
 
 Agora está tudo pronto para rodar.
@@ -137,6 +142,10 @@ namespace MyProject
     }
 }
 ```
+
+## Usando o DaoCompositionRoot
+
+## Resultado da execução
 
 A busca realizada vai ser essa onde '@p0' é igual '%Ken%'.
 
