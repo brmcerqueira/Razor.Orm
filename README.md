@@ -3,15 +3,18 @@ Razor.Orm - Um micro ORM baseado no Razor
 
 A motivação por traz do Razor.Orm é de trazer um framework fácil de usar, performatico e que der poder ao desenvolvedor na hora de fazer SQLs puros. perfeito para especialistas em banco de dados.
 
-Para baixar e instalar você deve acessar o link abaixo:
-
-[Razor.Orm NuGet library](https://www.nuget.org/packages/Razor.Orm)
-
 # Guia
+- [Baixar e instalar](#baixar-e-instalar)
 - [Primeiros passos](#primeiros-passos)
   * [Usando o DaoFactory](#usando-o-daofactory)
   * [Usando o DaoCompositionRoot](#usando-o-daocompositionroot)
   * [Resultado da execução](#resultado-da-execução)
+
+# Baixar e instalar
+
+Para baixar e instalar você deve acessar o link abaixo:
+
+[Razor.Orm NuGet library](https://www.nuget.org/packages/Razor.Orm)
 
 # Primeiros passos
 
