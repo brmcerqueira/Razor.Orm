@@ -26,7 +26,7 @@ namespace Razor.Orm
         private string assemblyName;
         private List<Type> types;
         private List<SyntaxTree> syntaxTrees;
-        protected Transformers Transformers { get; }
+        protected Extractor Extractor { get; }
 
         public DaoGenerator()
         {
@@ -44,7 +44,7 @@ namespace Razor.Orm
             assemblyName = Path.GetRandomFileName();
             types = new List<Type>();
             syntaxTrees = new List<SyntaxTree>();
-            Transformers = new Transformers();
+            Extractor = new Extractor();
         }
 
         protected void Generate()
@@ -182,11 +182,11 @@ namespace Razor.Orm
 
             stringBuilder.Append($@"namespace Razor.Orm.Generated {{ 
                 public class {type.Name}_GenerateDao : global::Razor.Orm.Dao, {FullNameForCode(type)} {{ 
-                public {type.Name}_GenerateDao(global::System.Data.SqlClient.SqlConnection sqlConnection, global::Razor.Orm.Transformers transformers) : 
-                base(sqlConnection, transformers) {{ }}");
+                public {type.Name}_GenerateDao(global::System.Data.Common.DbConnection connection, global::Razor.Orm.Extractor extractor) : 
+                base(connection, extractor) {{ }}");
 
-            stringBuilderMap.Append($@"protected override global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] GetMap() {{ 
-                return new global::System.Tuple<string, global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[][] {{ ");
+            stringBuilderMap.Append($@"protected override global::System.Tuple<string, global::System.Func<global::System.Data.Common.DbDataReader, int, object>>[][] GetMap() {{ 
+                return new global::System.Tuple<string, global::System.Func<global::System.Data.Common.DbDataReader, int, object>>[][] {{ ");
 
             var methodIndex = 0;
 
@@ -203,7 +203,7 @@ namespace Razor.Orm
                     case TypeClassifier.Void:
                         stringBuilder.Append("void");
                         break;
-                    case TypeClassifier.Primitive:
+                    case TypeClassifier.Extractor:
                     case TypeClassifier.Enumerable:
                     case TypeClassifier.Object:
                         stringBuilder.Append(FullNameForCode(returnType));
@@ -248,7 +248,7 @@ namespace Razor.Orm
                     case TypeClassifier.Void:
                         stringBuilder.Append($"Execute({template}, {stringBuilderModel});");
                         break;
-                    case TypeClassifier.Primitive:
+                    case TypeClassifier.Extractor:
                         stringBuilder.Append($"return Execute<{FullNameForCode(returnType)}>({template}, {stringBuilderModel});");
                         break;
                     case TypeClassifier.Enumerable:
@@ -298,20 +298,20 @@ namespace Razor.Orm
         {
             switch (Classifier(type))
             {
-                case TypeClassifier.Primitive:
+                case TypeClassifier.Extractor:
                     stringBuilder.Append($" d.Get<{FullNameForCode(type)}>({columnIndex})");
 
                     if (stringBuilderTuple.Length == 0)
                     {
                         stringBuilderTuple.Append(@" new global::System.Tuple<string,
-                            global::System.Func<global::System.Data.SqlClient.SqlDataReader, int, object>>[] { ");
+                            global::System.Func<global::System.Data.Common.DbDataReader, int, object>>[] { ");
                     }
                     else
                     {
                         stringBuilderTuple.Append(", ");
                     }
 
-                    stringBuilderTuple.Append($"global::System.Tuple.Create(\"{path.ToLower()}\", GetTransform(typeof({FullNameForCode(type)})))");        
+                    stringBuilderTuple.Append($"global::System.Tuple.Create(\"{path.ToLower()}\", Get(typeof({FullNameForCode(type)})))");        
                     columnIndex++;
                     break;
                 case TypeClassifier.Object:
@@ -347,9 +347,9 @@ namespace Razor.Orm
             {
                 return TypeClassifier.Void;
             }
-            else if (Transformers.Contains(type))
+            else if (Extractor.Contains(type))
             {
-                return TypeClassifier.Primitive;
+                return TypeClassifier.Extractor;
             }
             else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {

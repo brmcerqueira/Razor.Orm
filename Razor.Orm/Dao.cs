@@ -2,60 +2,56 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 
 namespace Razor.Orm
 {
     public abstract class Dao
     {
-        public Dao(SqlConnection sqlConnection, Transformers transformers)
+        public Dao(DbConnection connection, Extractor extractor)
         {
-            SqlConnection = sqlConnection;
-            Transformers = transformers;
+            Connection = connection;
+            Extractor = extractor;
             Map = GetMap();
         }
 
-        protected abstract Tuple<string, Func<SqlDataReader, int, object>>[][] GetMap();
+        protected abstract Tuple<string, Func<DbDataReader, int, object>>[][] GetMap();
 
-        private SqlConnection SqlConnection { get; }
-        private Transformers Transformers { get; }
-        private Tuple<string, Func<SqlDataReader, int, object>>[][] Map { get; }
+        private DbConnection Connection { get; }
+        private Extractor Extractor { get; }
+        private Tuple<string, Func<DbDataReader, int, object>>[][] Map { get; }
 
-        protected Func<SqlDataReader, int, object> GetTransform(Type type)
+        protected Func<DbDataReader, int, object> Get(Type type)
         {
-            return Transformers.GetTransform(type);
+            return Extractor.Get(type);
         }
 
-        private SqlCommand CreateCommand(ISqlTemplate sqlTemplate, object model)
+        private DbCommand CreateCommand(ISqlTemplate sqlTemplate, object model)
         {
-            var sqlCommand = SqlConnection.CreateCommand();
+            var command = Connection.CreateCommand();
 
-            var sqlTemplateResult = sqlTemplate.Process(model);
+            sqlTemplate.Process(command, model);
 
-            sqlCommand.CommandText = sqlTemplateResult.Content;
-
-            sqlCommand.Parameters.AddRange(sqlTemplateResult.Parameters);
-
-            return sqlCommand;
+            return command;
         }
 
         protected void Execute(ISqlTemplate sqlTemplate, object model)
         {
-            using (var sqlCommand = CreateCommand(sqlTemplate, model))
+            using (var command = CreateCommand(sqlTemplate, model))
             {
-                sqlCommand.ExecuteNonQuery();
+                command.ExecuteNonQuery();
             }
         }
 
         protected IEnumerable<T> ExecuteEnumerable<T>(ISqlTemplate sqlTemplate, object model, int methodIndex, Func<DataReader, T> parse)
         {
-            using (var sqlCommand = CreateCommand(sqlTemplate, model))
+            using (var command = CreateCommand(sqlTemplate, model))
             {
-                using (var sqlDataReader = sqlCommand.ExecuteReader(CommandBehavior.Default))
+                using (var dbDataReader = command.ExecuteReader(CommandBehavior.Default))
                 {
-                    var dataReader = new DataReader(sqlDataReader, Map[methodIndex]);
-                    while (sqlDataReader.Read())
+                    var dataReader = new DataReader(dbDataReader, Map[methodIndex]);
+                    while (dbDataReader.Read())
                     {
                         yield return parse(dataReader);
                     }
@@ -67,13 +63,13 @@ namespace Razor.Orm
         {
             var result = default(T);
 
-            using (var sqlCommand = CreateCommand(sqlTemplate, model))
+            using (var command = CreateCommand(sqlTemplate, model))
             {
-                using (var sqlDataReader = sqlCommand.ExecuteReader(CommandBehavior.Default))
+                using (var dbDataReader = command.ExecuteReader(CommandBehavior.Default))
                 {
-                    if (sqlDataReader.Read())
+                    if (dbDataReader.Read())
                     {
-                        result = (T) GetTransform(typeof(T)).Invoke(sqlDataReader, 0); 
+                        result = (T) Get(typeof(T)).Invoke(dbDataReader, 0); 
                     }
                 }
             }

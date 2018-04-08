@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <PackageReference Include="LightInject" Version="5.1.2" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,6 +5,7 @@ using Razor.Orm.Example.Dao.TestDao;
 using Razor.Orm.Example.Dto;
 using Razor.Orm.Test.Xunit;
 using System;
+using System.Data.SqlClient;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,8 +17,8 @@ namespace Razor.Orm.Test
         {
             RazorOrmLogger.LoggerFactory = new LoggerFactory().AddTestOutputHelper(testOutputHelper);
             Container = new ServiceContainer();
-            TestDaoCompositionRoot.ConnectionString = "Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True";
-            Container.RegisterFrom<TestDaoCompositionRoot>();
+            Container.Register(f => new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True"));
+            Container.RegisterFrom<TestDaoCompositionRoot<SqlConnection>>();
             TestOutputHelper = testOutputHelper;
         }
 

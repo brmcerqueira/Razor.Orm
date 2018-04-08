@@ -1,6 +1,6 @@
 ﻿using Razor.Orm;
 using System;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace LightInject.Razor.Orm
 {
@@ -12,22 +12,22 @@ namespace LightInject.Razor.Orm
         {
             this.serviceRegistry = serviceRegistry;
 
-            if (SqlConnectionLifetime != null)
+            if (ConnectionLifetime != null)
             {
-                this.serviceRegistry.Register(CreateSqlConnection, SqlConnectionLifetime);
+                this.serviceRegistry.Register(CreateConnection, ConnectionLifetime);
             }
             else
             {
-                this.serviceRegistry.Register(CreateSqlConnection);
+                this.serviceRegistry.Register(CreateConnection);
             }
 
-            this.serviceRegistry.Register(f => Transformers);
+            this.serviceRegistry.Register(f => Extractor);
             Generate();
         }
 
-        protected abstract SqlConnection CreateSqlConnection(IServiceFactory serviceFactory);
+        protected abstract DbConnection CreateConnection(IServiceFactory serviceFactory);
 
-        protected virtual ILifetime SqlConnectionLifetime
+        protected virtual ILifetime ConnectionLifetime
         {
             get
             {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace Razor.Orm
 {
@@ -8,11 +8,11 @@ namespace Razor.Orm
     {
         private Func<object>[] functions;
 
-        internal DataReader(SqlDataReader sqlDataReader, Tuple<string, Func<SqlDataReader, int, object>>[] map)
+        internal DataReader(DbDataReader dbDataReader, Tuple<string, Func<DbDataReader, int, object>>[] map)
         {
             functions = new Func<object>[map.Length];
 
-            foreach (DataRow item in sqlDataReader.GetSchemaTable().Rows)
+            foreach (DataRow item in dbDataReader.GetSchemaTable().Rows)
             {
                 var name = item["ColumnName"].ToString().ToLower();
                 var ordinal = (int) item["ColumnOrdinal"];
@@ -22,7 +22,7 @@ namespace Razor.Orm
                     var tuple = map[i];
                     if (tuple.Item1 == name && tuple.Item2 != null)
                     {
-                        functions[i] = () => tuple.Item2(sqlDataReader, ordinal);
+                        functions[i] = () => tuple.Item2(dbDataReader, ordinal);
                         break;
                     }
                 }

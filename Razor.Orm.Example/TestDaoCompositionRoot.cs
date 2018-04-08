@@ -1,22 +1,20 @@
 ﻿using LightInject;
 using LightInject.Razor.Orm;
 using Razor.Orm.Example.Dao.TestDao;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace Razor.Orm.Example
 {
-    public class TestDaoCompositionRoot : DaoCompositionRoot
+    public class TestDaoCompositionRoot<T> : DaoCompositionRoot where T : DbConnection
     {
-        public static string ConnectionString { get; set; }
-
-        protected override SqlConnection CreateSqlConnection(IServiceFactory serviceFactory)
+        protected override DbConnection CreateConnection(IServiceFactory serviceFactory)
         {
-            var sqlConnection = new SqlConnection(ConnectionString);
-            sqlConnection.Open();
-            return sqlConnection;
+            var connection = serviceFactory.GetInstance<T>();
+            connection.Open();
+            return connection;
         }
 
-        protected override ILifetime SqlConnectionLifetime => new PerContainerLifetime();
+        protected override ILifetime ConnectionLifetime => new PerContainerLifetime();
 
         protected override void Setup()
         {

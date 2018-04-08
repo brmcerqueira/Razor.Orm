@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,10 +16,12 @@ namespace Razor.Orm.Template
     {
         protected TModel Model { get; private set; }
         private ILogger logger;
+
+        private DbCommand Command { get; set; }
+
         private SqlWriter sqlWriter;
 
         private int parametersIndex;
-        private IList<SqlParameter> parameters;
 
         public SqlTemplate()
         {
@@ -28,12 +30,12 @@ namespace Razor.Orm.Template
 
         public SmartBuilder Smart { get; private set; }
 
-        public SqlTemplateResult Process(object model)
+        public void Process(DbCommand command, object model)
         {
+            Command = command;
             sqlWriter = new SqlWriter();
             Smart = new SmartBuilder(sqlWriter);
             parametersIndex = 0;
-            parameters = new List<SqlParameter>();
 
             if (model != null)
             {
@@ -60,15 +62,14 @@ namespace Razor.Orm.Template
             Execute();
 
             var sql = sqlWriter.ToString();
-            var sqlParameters = parameters.ToArray();
 
             if (logger != null)
             {
                 logger.LogInformation(sql);
-                logger.LogInformation(string.Join('\n', sqlParameters.Select(e => $"{e.ParameterName} -> {e.Value}")));
+                logger.LogInformation(string.Join('\n', Command.Parameters.OfType<DbParameter>().Select(e => $"{e.ParameterName} -> {e.Value}")));
             }
 
-            return new SqlTemplateResult(sql, sqlParameters);
+            command.CommandText = sql;
         }
 
         protected virtual void Write(object value)
@@ -100,10 +101,12 @@ namespace Razor.Orm.Template
 
         public EscapeString Par(object value)
         {
-            var key = string.Format("@p{0}", parametersIndex);
+            var parameter = Command.CreateParameter();
+            parameter.ParameterName = string.Format("@p{0}", parametersIndex);
+            parameter.Value = value;
             parametersIndex++;
-            parameters.Add(new SqlParameter(key, value));
-            return new EscapeString(key);
+            Command.Parameters.Add(parameter);
+            return new EscapeString(parameter.ParameterName);
         }
 
         public EscapeString InParams(params string[] values)

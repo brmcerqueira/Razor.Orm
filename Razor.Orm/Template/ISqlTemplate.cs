@@ -1,7 +1,9 @@
-﻿namespace Razor.Orm.Template
+﻿using System.Data.Common;
+
+namespace Razor.Orm.Template
 {
     public interface ISqlTemplate
     {
-        SqlTemplateResult Process(object model);
+        void Process(DbCommand command, object model);
     }
 }

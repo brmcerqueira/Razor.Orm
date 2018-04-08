@@ -3,7 +3,7 @@
     internal enum TypeClassifier
     {
         Void,
-        Primitive,
+        Extractor,
         Enumerable,
         Object
     }
