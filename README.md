@@ -147,14 +147,14 @@ namespace MyProject
 {
     public class MyDaoCompositionRoot : DaoCompositionRoot
     {
-        protected override SqlConnection CreateSqlConnection(IServiceFactory serviceFactory)
+        protected override DbConnection CreateConnection(IServiceFactory serviceFactory)
         {
             var sqlConnection = new SqlConnection("Data Source=localhost\\SQLEXPRESS;Initial Catalog=AdventureWorks2017;Integrated Security=True");
             sqlConnection.Open();
             return sqlConnection;
         }
 
-        protected override ILifetime SqlConnectionLifetime => new PerContainerLifetime();
+        protected override ILifetime ConnectionLifetime => new PerContainerLifetime();
 
         protected override void Setup()
         {
